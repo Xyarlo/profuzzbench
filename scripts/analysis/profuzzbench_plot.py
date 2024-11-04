@@ -17,7 +17,7 @@ def main(csv_file, put, runs, cut_off, step, out_file):
   mean_list = []
 
   for subject in [put]:
-    for fuzzer in ['aflnet-tuples', 'aflnet']:
+    for fuzzer in ['aflnet', 'aflnet-tuples']:
       for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per']:
         #get subject & fuzzer & cov_type-specific dataframe
         df1 = df[(df['subject'] == subject) & 
@@ -77,7 +77,7 @@ def main(csv_file, put, runs, cut_off, step, out_file):
       axes[1, 1].set_ylabel('Line coverage (%)')
 
   for i, ax in enumerate(fig.axes):
-    ax.legend(('AFLNet-Tuples', 'AFLNet'), loc='upper left')
+    ax.legend(('AFLNet', 'AFLNet-Tuples'), loc='upper left')
     ax.grid()
 
   #Save to file
