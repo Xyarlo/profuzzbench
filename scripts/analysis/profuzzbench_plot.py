@@ -58,6 +58,8 @@ def main(csv_file, put, runs, cut_off, step, out_file):
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
     axes = axes.flatten()  # Flatten to easily index axes in a loop
 
+    fig.suptitle(f"Code Coverage Over Time for {put}", fontsize=16)
+
     # Define order for subplot titles
     coverage_types = ['b_abs', 'b_per', 'l_abs', 'l_per']
     
@@ -75,9 +77,18 @@ def main(csv_file, put, runs, cut_off, step, out_file):
                             alpha=0.3)  # Adjust alpha for transparency of shaded area
 
         # Set titles and labels for each subplot
-        ax.set_title(f"{cov_type} Coverage for {put}")
         ax.set_xlabel("Time (minutes)")
-        ax.set_ylabel("Code Coverage")
+        match cov_type:
+            case 'b_abs':
+                ax.set_ylabel("# edges")
+            case 'b_per':
+                ax.set_ylabel("% edges")
+            case 'l_abs':
+                ax.set_ylabel("# lines")
+            case 'l_per':
+                ax.set_ylabel("% lines")
+            case _:
+                ax.set_ylabel("unknown")
         ax.legend(loc='upper left')
         ax.grid(True)
 
