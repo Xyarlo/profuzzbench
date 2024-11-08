@@ -54,28 +54,36 @@ def main(csv_file, put, runs, cut_off, step, out_file):
     # Merge mean and standard deviation DataFrames on common columns
     merged_df = pd.merge(mean_df, std_dev_df, on=['subject', 'fuzzer', 'cov_type', 'time'])
 
-    # Plot the data with shaded regions for standard deviation
-    plt.figure(figsize=(12, 8))
+    # Set up a 2x2 grid for subplots
+    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+    axes = axes.flatten()  # Flatten to easily index axes in a loop
 
-    for (fuzzer, cov_type), group_df in merged_df.groupby(['fuzzer', 'cov_type']):
-        # Plot the mean coverage line
-        plt.plot(group_df['time'], group_df['mean_cov'], label=f"{fuzzer} - {cov_type}")
+    # Define order for subplot titles
+    coverage_types = ['b_abs', 'b_per', 'l_abs', 'l_per']
+    
+    # Iterate over coverage types and plot each in a separate subplot
+    for i, cov_type in enumerate(coverage_types):
+        ax = axes[i]
+        cov_type_df = merged_df[merged_df['cov_type'] == cov_type]
         
-        # Add shaded area for standard deviation
-        plt.fill_between(group_df['time'],
-                         group_df['mean_cov'] - group_df['std_dev_cov'],
-                         group_df['mean_cov'] + group_df['std_dev_cov'],
-                         alpha=0.3)  # Adjust alpha for transparency of the shaded area
+        # Plot mean coverage with shaded standard deviation
+        for fuzzer, fuzzer_df in cov_type_df.groupby('fuzzer'):
+            ax.plot(fuzzer_df['time'], fuzzer_df['mean_cov'], label=f"{fuzzer}")
+            ax.fill_between(fuzzer_df['time'],
+                            fuzzer_df['mean_cov'] - fuzzer_df['std_dev_cov'],
+                            fuzzer_df['mean_cov'] + fuzzer_df['std_dev_cov'],
+                            alpha=0.3)  # Adjust alpha for transparency of shaded area
 
-    # Label the plot
-    plt.xlabel("Time (minutes)")
-    plt.ylabel("Code Coverage")
-    plt.title(f"Code Coverage Over Time for {put}")
-    plt.legend()
-    plt.grid(True)
+        # Set titles and labels for each subplot
+        ax.set_title(f"{cov_type} Coverage for {put}")
+        ax.set_xlabel("Time (minutes)")
+        ax.set_ylabel("Code Coverage")
+        ax.legend(loc='upper left')
+        ax.grid(True)
+
+    # Adjust layout to prevent overlap and save the figure
     plt.tight_layout()
     plt.savefig(out_file)
-    plt.show()
 
 # Parse the input arguments
 if __name__ == '__main__':
