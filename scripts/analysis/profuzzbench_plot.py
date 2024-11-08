@@ -77,14 +77,15 @@ def main(csv_file, put, runs, cut_off, step, out_file):
     plt.savefig(out_file)
     plt.show()
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Plot code coverage over time with standard deviation shading.")
-    parser.add_argument("csv_file", type=str, help="Path to the input CSV file.")
-    parser.add_argument("put", type=str, help="Program under test (subject).")
-    parser.add_argument("runs", type=int, help="Number of runs to include.")
-    parser.add_argument("cut_off", type=int, help="Time cutoff for the analysis (in minutes).")
-    parser.add_argument("step", type=int, help="Time step for each interval (in minutes).")
-    parser.add_argument("out_file", type=str, help="Path to save the output plot.")
+# Parse the input arguments
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()    
+    parser.add_argument('-i','--csv_file',type=str,required=True,help="Full path to results.csv")
+    parser.add_argument('-p','--put',type=str,required=True,help="Name of the subject program")
+    parser.add_argument('-r','--runs',type=int,required=True,help="Number of runs in the experiment")
+    parser.add_argument('-c','--cut_off',type=int,required=True,help="Cut-off time in minutes")
+    parser.add_argument('-s','--step',type=int,required=True,help="Time step in minutes")
+    parser.add_argument('-o','--out_file',type=str,required=True,help="Output file")
 
     args = parser.parse_args()
     main(args.csv_file, args.put, args.runs, args.cut_off, args.step, args.out_file)
