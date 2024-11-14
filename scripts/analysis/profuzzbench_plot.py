@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 
 import argparse
+import os
 from pandas import read_csv
 from pandas import DataFrame
 from matplotlib import pyplot as plt
 import pandas as pd
 
-def main(csv_file, put, runs, cut_off, step, out_file):
+def main(csv_file, put, runs, cut_off, step, output_folder):
+    os.makedirs(output_folder, exist_ok=True)
+    out_file = os.path.join(output_folder, "´cov_over_time.png")
+    out_file_states = os.path.join(output_folder, "states_over_time.png")
+
     # Read the results from CSV
     df = read_csv(csv_file)
 
@@ -17,7 +22,7 @@ def main(csv_file, put, runs, cut_off, step, out_file):
     # Calculate mean and standard deviation for each time interval
     for subject in [put]:
         for fuzzer in ['aflnet', 'aflnet-tuples']:
-            for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per']:
+            for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per', 'states_abs']:
                 # Get subject, fuzzer, and cov_type-specific DataFrame
                 df1 = df[(df['subject'] == subject) & 
                          (df['fuzzer'] == fuzzer) & 
@@ -96,6 +101,30 @@ def main(csv_file, put, runs, cut_off, step, out_file):
     plt.tight_layout()
     plt.savefig(out_file)
 
+
+    ### Plot the additional `states_abs` coverage in a separate figure
+    fig_states, ax_states = plt.subplots(figsize=(7, 5))  # Single subplot for `states_abs`
+
+    states_df = merged_df[merged_df['cov_type'] == 'states_abs']
+    
+    # Plot mean coverage with shaded standard deviation for `states_abs`
+    for fuzzer, fuzzer_df in states_df.groupby('fuzzer'):
+        ax_states.plot(fuzzer_df['time'], fuzzer_df['mean_cov'], label=f"{fuzzer}")
+        ax_states.fill_between(fuzzer_df['time'],
+                               fuzzer_df['mean_cov'] - fuzzer_df['std_dev_cov'],
+                               fuzzer_df['mean_cov'] + fuzzer_df['std_dev_cov'],
+                               alpha=0.3)
+
+    ax_states.set_title(f"State Coverage for {put}")
+    ax_states.set_xlabel("Time (minutes)")
+    ax_states.set_ylabel("# states")
+    ax_states.legend(loc='upper left')
+    ax_states.grid(True)
+
+    # Save the figure for `states_abs` separately
+    plt.tight_layout()
+    plt.savefig(out_file_states)
+
 # Parse the input arguments
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()    
@@ -104,7 +133,7 @@ if __name__ == '__main__':
     parser.add_argument('-r','--runs',type=int,required=True,help="Number of runs in the experiment")
     parser.add_argument('-c','--cut_off',type=int,required=True,help="Cut-off time in minutes")
     parser.add_argument('-s','--step',type=int,required=True,help="Time step in minutes")
-    parser.add_argument('-o','--out_file',type=str,required=True,help="Output file")
+    parser.add_argument('-o','--output_folder',type=str,required=True,help="Output folder")
 
     args = parser.parse_args()
-    main(args.csv_file, args.put, args.runs, args.cut_off, args.step, args.out_file)
+    main(args.csv_file, args.put, args.runs, args.cut_off, args.step, args.output_folder)
