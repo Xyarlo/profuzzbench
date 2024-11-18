@@ -9,7 +9,7 @@ import pandas as pd
 
 def main(csv_file, put, runs, cut_off, step, output_folder):
     os.makedirs(output_folder, exist_ok=True)
-    out_file = os.path.join(output_folder, "´cov_over_time.png")
+    out_file = os.path.join(output_folder, "cov_over_time.png")
     out_file_states = os.path.join(output_folder, "states_over_time.png")
 
     # Read the results from CSV
