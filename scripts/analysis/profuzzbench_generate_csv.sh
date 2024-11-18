@@ -41,7 +41,7 @@ convert() {
       echo $time,$subject,$fuzzer,$run_index,"l_abs",$l_abs >> $ofile
       echo $time,$subject,$fuzzer,$run_index,"b_per",$b_per >> $ofile
       echo $time,$subject,$fuzzer,$run_index,"b_abs",$b_abs >> $ofile
-      echo $time,$subject,$fuzzer,$run_index,"states_abs",states_abs >> $ofile
+      echo $time,$subject,$fuzzer,$run_index,"states_abs",$states_abs >> $ofile
     done 
   } < $ifile
 }
