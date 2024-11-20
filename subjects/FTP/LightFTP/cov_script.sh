@@ -19,7 +19,7 @@ gcovr -r .. -s -d > /dev/null 2>&1
 
 #output the header of the coverage file which is in the CSV format
 #Time: timestamp, l_per/b_per and l_abs/b_abs: line/branch coverage in percentage and absolutate number
-echo "Time,l_per,l_abs,b_per,b_abs,states_abs" >> $covfile
+echo "Time,l_per,l_abs,b_per,b_abs,states_abs,fuzzed_seeds" >> $covfile
 
 #clear ftp data
 #this is a LightFTP-specific step
@@ -55,11 +55,15 @@ for f in $(echo $folder/$testdir/*.raw); do
   b_abs=$(echo "$cov_data" | grep branch | cut -d" " -f3 | cut -c2-)
 
   # Extract state coverage from the last line of the file
-  states_abs=$(tail -n 1 "$f" | grep -oP '(?<=# State Coverage: )\d+')
+  states_abs=$(grep -oP '(?<=# State Coverage: )\d+' "$f")
   states_abs=${states_abs:-0}  # Default to 0 if not found
 
+# Extract fuzzed seeds from the file
+  fuzzed_seeds=$(grep -oP '(?<=# Fuzzed Seeds: )\d+' "$f")
+  fuzzed_seeds=${fuzzed_seeds:-0}  # Default to 0 if not found
+
   # Log the coverage data along with state coverage
-  echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs" >> $covfile
+  echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs,$fuzzed_seeds" >> $covfile
 done
 
 #process fuzzer-generated testcases
@@ -85,11 +89,15 @@ for f in $(echo $folder/$testdir/id*); do
   b_abs=$(echo "$cov_data" | grep branch | cut -d" " -f3 | cut -c2-)
 
   # Extract state coverage from the last line of the file
-  states_abs=$(tail -n 1 "$f" | grep -oP '(?<=# State Coverage: )\d+')
+  states_abs=$(grep -oP '(?<=# State Coverage: )\d+' "$f")
   states_abs=${states_abs:-0}  # Default to 0 if not found
 
+# Extract fuzzed seeds from the file
+  fuzzed_seeds=$(grep -oP '(?<=# Fuzzed Seeds: )\d+' "$f")
+  fuzzed_seeds=${fuzzed_seeds:-0}  # Default to 0 if not found
+
   # Log the coverage data along with state coverage
-  echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs" >> $covfile
+  echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs,$fuzzed_seeds" >> $covfile
 done
 
 #ouput cov data for the last testcase(s) if step > 1
@@ -103,9 +111,13 @@ then
   b_abs=$(echo "$cov_data" | grep branch | cut -d" " -f3 | cut -c2-)
 
   # Extract state coverage from the last line of the file
-  states_abs=$(tail -n 1 "$f" | grep -oP '(?<=# State Coverage: )\d+')
+  states_abs=$(grep -oP '(?<=# State Coverage: )\d+' "$f")
   states_abs=${states_abs:-0}  # Default to 0 if not found
 
+# Extract fuzzed seeds from the file
+  fuzzed_seeds=$(grep -oP '(?<=# Fuzzed Seeds: )\d+' "$f")
+  fuzzed_seeds=${fuzzed_seeds:-0}  # Default to 0 if not found
+
   # Log the coverage data along with state coverage
-  echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs" >> $covfile
+  echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs,$fuzzed_seeds" >> $covfile
 fi

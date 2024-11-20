@@ -10,7 +10,7 @@ import pandas as pd
 def main(csv_file, put, runs, cut_off, step, output_folder):
     os.makedirs(output_folder, exist_ok=True)
     out_file = os.path.join(output_folder, "cov_over_time.png")
-    out_file_states = os.path.join(output_folder, "states_over_time.png")
+    out_file_states = os.path.join(output_folder, "stats_over_time.png")
 
     # Read the results from CSV
     df = read_csv(csv_file)
@@ -22,7 +22,7 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
     # Calculate mean and standard deviation for each time interval
     for subject in [put]:
         for fuzzer in ['aflnet', 'aflnet-tuples']:
-            for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per', 'states_abs']:
+            for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per', 'states_abs', 'fuzzed_seeds']:
                 # Get subject, fuzzer, and cov_type-specific DataFrame
                 df1 = df[(df['subject'] == subject) & 
                          (df['fuzzer'] == fuzzer) & 
@@ -102,28 +102,37 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
     plt.savefig(out_file)
 
 
-    ### Plot the additional `states_abs` coverage in a separate figure
-    fig_states, ax_states = plt.subplots(figsize=(7, 5))  # Single subplot for `states_abs`
+    ### Plot the additional `states_abs` and `fuzzed_seeds` metrics in a 1x2 grid
+    fig_states_seeds, axes_states_seeds = plt.subplots(1, 2, figsize=(15, 5))
 
-    states_df = merged_df[merged_df['cov_type'] == 'states_abs']
-    
-    # Plot mean coverage with shaded standard deviation for `states_abs`
-    for fuzzer, fuzzer_df in states_df.groupby('fuzzer'):
-        ax_states.plot(fuzzer_df['time'], fuzzer_df['mean_cov'], label=f"{fuzzer}")
-        ax_states.fill_between(fuzzer_df['time'],
-                               fuzzer_df['mean_cov'] - fuzzer_df['std_dev_cov'],
-                               fuzzer_df['mean_cov'] + fuzzer_df['std_dev_cov'],
-                               alpha=0.3)
+    metrics = ['states_abs', 'fuzzed_seeds']
+    titles = ["Discovered States", "Total Fuzzed Seeds"]
 
-    ax_states.set_title(f"State Coverage for {put}")
-    ax_states.set_xlabel("Time (minutes)")
-    ax_states.set_ylabel("# states")
-    ax_states.legend(loc='upper left')
-    ax_states.grid(True)
+    for i, (metric, title) in enumerate(zip(metrics, titles)):
+        ax = axes_states_seeds[i]
+        metric_df = merged_df[merged_df['cov_type'] == metric]
+        
+        for fuzzer, fuzzer_df in metric_df.groupby('fuzzer'):
+            ax.plot(fuzzer_df['time'], fuzzer_df['mean_cov'], label=f"{fuzzer}")
+            ax.fill_between(fuzzer_df['time'],
+                            fuzzer_df['mean_cov'] - fuzzer_df['std_dev_cov'],
+                            fuzzer_df['mean_cov'] + fuzzer_df['std_dev_cov'],
+                            alpha=0.3)
 
-    # Save the figure for `states_abs` separately
+        ax.set_title(f"{title} for {put}")
+        ax.set_xlabel("Time (minutes)")
+        match metric:
+            case 'states_abs':
+                ax.set_ylabel("# discovered states")
+            case 'fuzzed_seeds':
+                ax.set_ylabel("% fuzzed seeds")
+            case _:
+                ax.set_ylabel("unknown")
+        ax.legend(loc='upper left')
+        ax.grid(True)
+
     plt.tight_layout()
-    plt.savefig(out_file_states)
+    plt.savefig(out_file_states_seeds)
 
 # Parse the input arguments
 if __name__ == '__main__':
