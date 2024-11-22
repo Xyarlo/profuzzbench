@@ -10,7 +10,7 @@ import pandas as pd
 def main(csv_file, put, runs, cut_off, step, output_folder):
     os.makedirs(output_folder, exist_ok=True)
     out_file = os.path.join(output_folder, "cov_over_time.png")
-    out_file_states = os.path.join(output_folder, "stats_over_time.png")
+    out_file_stats = os.path.join(output_folder, "stats_over_time.png")
 
     # Read the results from CSV
     df = read_csv(csv_file)
@@ -132,7 +132,7 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
         ax.grid(True)
 
     plt.tight_layout()
-    plt.savefig(out_file_states_seeds)
+    plt.savefig(out_file_stats)
 
 # Parse the input arguments
 if __name__ == '__main__':
