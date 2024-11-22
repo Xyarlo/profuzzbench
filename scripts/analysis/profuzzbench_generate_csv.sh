@@ -37,11 +37,13 @@ convert() {
       b_per=$(strim $(echo $line | cut -d',' -f4))
       b_abs=$(strim $(echo $line | cut -d',' -f5))
       states_abs=$(strim $(echo $line | cut -d',' -f6))
+      fuzzed_seeds=$(strim $(echo $line | cut -d',' -f7))
       echo $time,$subject,$fuzzer,$run_index,"l_per",$l_per >> $ofile
       echo $time,$subject,$fuzzer,$run_index,"l_abs",$l_abs >> $ofile
       echo $time,$subject,$fuzzer,$run_index,"b_per",$b_per >> $ofile
       echo $time,$subject,$fuzzer,$run_index,"b_abs",$b_abs >> $ofile
       echo $time,$subject,$fuzzer,$run_index,"states_abs",$states_abs >> $ofile
+      echo $time,$subject,$fuzzer,$run_index,"fuzzed_seeds",$fuzzed_seeds >> $ofile
     done 
   } < $ifile
 }
