@@ -55,15 +55,16 @@ for f in $(echo $folder/$testdir/*.raw); do
   b_abs=$(echo "$cov_data" | grep branch | cut -d" " -f3 | cut -c2-)
 
   # Extract state coverage from the file
-  states_abs=$(strings "$f" | grep -oP '(?<=# State Coverage: )\d+')
-  states_abs=${states_abs:-0}  # Default to 0 if not found
+  #states_abs=$(strings "$f" | grep -oP '(?<=# State Coverage: )\d+')
+  #states_abs=${states_abs:-0}  # Default to 0 if not found
 
   # Extract fuzzed seeds from the file
-  fuzzed_seeds=$(strings "$f" | grep -oP '(?<=# Fuzzed Seeds: )\d+')
-  fuzzed_seeds=${fuzzed_seeds:-0}  # Default to 0 if not found
+  #fuzzed_seeds=$(strings "$f" | grep -oP '(?<=# Fuzzed Seeds: )\d+')
+  #fuzzed_seeds=${fuzzed_seeds:-0}  # Default to 0 if not found
 
   # Log the coverage data along with state coverage and fuzzed seeds
-  echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs,$fuzzed_seeds" >> $covfile
+  #echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs,$fuzzed_seeds" >> $covfile
+  echo "$time,$l_per,$l_abs,$b_per,$b_abs" >> $covfile
 
 done
 
@@ -90,15 +91,16 @@ for f in $(echo $folder/$testdir/id*); do
   b_abs=$(echo "$cov_data" | grep branch | cut -d" " -f3 | cut -c2-)
 
   # Extract state coverage from the file
-  states_abs=$(strings "$f" | grep -oP '(?<=# State Coverage: )\d+')
-  states_abs=${states_abs:-0}  # Default to 0 if not found
+  #states_abs=$(strings "$f" | grep -oP '(?<=# State Coverage: )\d+')
+  #states_abs=${states_abs:-0}  # Default to 0 if not found
 
   # Extract fuzzed seeds from the file
-  fuzzed_seeds=$(strings "$f" | grep -oP '(?<=# Fuzzed Seeds: )\d+')
-  fuzzed_seeds=${fuzzed_seeds:-0}  # Default to 0 if not found
+  #fuzzed_seeds=$(strings "$f" | grep -oP '(?<=# Fuzzed Seeds: )\d+')
+  #fuzzed_seeds=${fuzzed_seeds:-0}  # Default to 0 if not found
 
   # Log the coverage data along with state coverage and fuzzed seeds
-  echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs,$fuzzed_seeds" >> $covfile
+  #echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs,$fuzzed_seeds" >> $covfile
+  echo "$time,$l_per,$l_abs,$b_per,$b_abs" >> $covfile
 
 done
 
@@ -113,14 +115,15 @@ then
   b_abs=$(echo "$cov_data" | grep branch | cut -d" " -f3 | cut -c2-)
 
   # Extract state coverage from the file
-  states_abs=$(strings "$f" | grep -oP '(?<=# State Coverage: )\d+')
-  states_abs=${states_abs:-0}  # Default to 0 if not found
+  #states_abs=$(strings "$f" | grep -oP '(?<=# State Coverage: )\d+')
+  #states_abs=${states_abs:-0}  # Default to 0 if not found
 
   # Extract fuzzed seeds from the file
-  fuzzed_seeds=$(strings "$f" | grep -oP '(?<=# Fuzzed Seeds: )\d+')
-  fuzzed_seeds=${fuzzed_seeds:-0}  # Default to 0 if not found
+  #fuzzed_seeds=$(strings "$f" | grep -oP '(?<=# Fuzzed Seeds: )\d+')
+  #fuzzed_seeds=${fuzzed_seeds:-0}  # Default to 0 if not found
 
   # Log the coverage data along with state coverage and fuzzed seeds
-  echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs,$fuzzed_seeds" >> $covfile
+  #echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs,$fuzzed_seeds" >> $covfile
+  echo "$time,$l_per,$l_abs,$b_per,$b_abs" >> $covfile
 
 fi
