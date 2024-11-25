@@ -16,48 +16,39 @@ def extract_csvs(output_dir, name_prefix, set_label):
                 tar.extract(member, output_dir)
                 extracted_csv_path = os.path.join(output_dir, member.name)
                 
-                # Read the CSV as a single row, then flatten into a Series
                 data = pd.read_csv(extracted_csv_path, header=None).iloc[0]
                 csv_data.append(data)
-                print("\nData: ")
-                print(data)
                 
-                # Clean up the extracted file
                 os.remove(extracted_csv_path)
     return csv_data
 
 def plot_distributions(data_list, set_label, bin_size=500):
-    # Concatenate all data into a single Series
-    print("\nData list: ")
-    print(data_list)
     all_numbers = pd.concat(data_list)
-    print("\nAll Numbers: ")
-    print(all_numbers)
     
-    # Calculate the bins explicitly, starting from 0
     max_value = all_numbers.max()
     bins = np.arange(0, max_value + bin_size, bin_size)
     
-    # Plot the histogram
     plt.hist(all_numbers, bins=bins, alpha=0.7, label=f"Set {set_label}", edgecolor="black")
-    plt.xlabel(f"Value Ranges (Bin Size: {bin_size})")
-    plt.ylabel("Frequency")
-    plt.title(f"Distribution of Numbers in Set {set_label} (Grouped by {bin_size})")
-    plt.legend()
+    plt.xlabel(f"Score (Bin Size: {bin_size})", fontsize=12)
+    plt.ylabel("Frequency", fontsize=12)
+    plt.title(f"Distribution of State Scores in {set_label}", fontsize=20)
 
 def main(csv_file, put, step, output_folder):
     os.makedirs(output_folder, exist_ok=True)
 
-    set_labels = {"aflnet-tuples","aflnet"}
+    set_labels = ["aflnet-tuples","aflnet"]
+    plt.figure(figsize=(12, 6))
 
-    for label in set_labels:
-        plt.figure(figsize=(12, 6))
+    for i in range(2):
+        label = set_labels[i]
         print(f"Processing {label}...")
+
+        plt.subplot(1, 2, i+1)
         set_data = extract_csvs(output_folder, f"out-{put}-{label}_", label)
         plot_distributions(set_data, label, step)
 
-        out_file = os.path.join(output_folder, f"score_distribution_{label}.png")
-        plt.savefig(out_file)
+    plt.tight_layout()
+    plt.savefig("score_distribution.png")
 
 
 # Parse the input arguments
