@@ -22,14 +22,25 @@ def extract_csvs(output_dir, name_prefix, set_label):
     return csv_data
 
 def plot_distributions(data_list, set_label, bin_size=500):
+    """
+    Plots the distribution of numbers grouped into ranges.
+    Args:
+        data_list (list): List of pandas Series to plot.
+        set_label (str): Label for the set (e.g., "A" or "B").
+        bin_size (int): Size of the bins for grouping the data.
+    """
+    # Concatenate all data into a single Series
     all_numbers = pd.concat(data_list)
+    
+    # Calculate the bins explicitly, starting from 0
     max_value = all_numbers.max()
     bins = np.arange(0, max_value + bin_size, bin_size)
-
-    plt.hist(all_numbers, bins=30, alpha=0.7, label=f"Set {set_label}")
-    plt.xlabel("Range")
+    
+    # Plot the histogram
+    plt.hist(all_numbers, bins=bins, alpha=0.7, label=f"Set {set_label}", edgecolor="black")
+    plt.xlabel(f"Value Ranges (Bin Size: {bin_size})")
     plt.ylabel("Frequency")
-    plt.title(f"Distribution of State Scores for {set_label}")
+    plt.title(f"Distribution of Numbers in Set {set_label} (Grouped by {bin_size})")
     plt.legend()
 
 def main(csv_file, put, step, output_folder):
