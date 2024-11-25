@@ -14,7 +14,8 @@ def extract_csvs(output_dir, name_prefix, set_label):
                 member = next(member for member in tar.getmembers() if member.name.endswith("state_scores.csv"))
                 tar.extract(member, output_dir)
                 extracted_csv_path = os.path.join(output_dir, member.name)
-                data = pd.read_csv(extracted_csv_path, header=None, squeeze=True)
+                # Read the CSV and convert it to a Series
+                data = pd.read_csv(extracted_csv_path, header=None).iloc[:, 0]
                 csv_data.append(data)
                 os.remove(extracted_csv_path)  # Clean up extracted file
     return csv_data
