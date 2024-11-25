@@ -37,7 +37,7 @@ def main(csv_file, put, step, output_folder):
     os.makedirs(output_folder, exist_ok=True)
 
     set_labels = ["aflnet-tuples","aflnet"]
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(18, 6))
 
     for i in range(2):
         label = set_labels[i]
@@ -48,7 +48,7 @@ def main(csv_file, put, step, output_folder):
         plot_distributions(set_data, label, step)
 
     plt.tight_layout()
-    plt.savefig("score_distribution.png")
+    plt.savefig(os.path.join(output_folder, f"score_distribution.png"))
 
 
 # Parse the input arguments
