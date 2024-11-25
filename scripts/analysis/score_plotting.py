@@ -17,23 +17,19 @@ def extract_csvs(output_dir, name_prefix, set_label):
                 extracted_csv_path = os.path.join(output_dir, member.name)
                 # Read the CSV and convert it to a Series
                 data = pd.read_csv(extracted_csv_path, header=None).iloc[:, 0]
-                print("Data: " + data)
+                print("\nData: ")
+                print(data)
                 csv_data.append(data)
                 os.remove(extracted_csv_path)  # Clean up extracted file
     return csv_data
 
 def plot_distributions(data_list, set_label, bin_size=500):
-    """
-    Plots the distribution of numbers grouped into ranges.
-    Args:
-        data_list (list): List of pandas Series to plot.
-        set_label (str): Label for the set (e.g., "A" or "B").
-        bin_size (int): Size of the bins for grouping the data.
-    """
     # Concatenate all data into a single Series
-    print("Data list: " + data_list)
+    print("\nData list: ")
+    print(data_list)
     all_numbers = pd.concat(data_list)
-    print("All Numbers: " + all_numbers)
+    print("\nAll Numbers: ")
+    print(all_numbers)
     
     # Calculate the bins explicitly, starting from 0
     max_value = all_numbers.max()
