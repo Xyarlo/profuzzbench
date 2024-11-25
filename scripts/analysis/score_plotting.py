@@ -35,7 +35,7 @@ def main(csv_file, put, step, output_folder):
 
     set_labels = {"aflnet-tuples","aflnet"}
 
-    for label in set_labels {
+    for label in set_labels:
         plt.figure(figsize=(12, 6))
         print(f"Processing {label}...")
         set_data = extract_csvs(output_folder, f"out-{put}-{label}_", label)
@@ -43,7 +43,6 @@ def main(csv_file, put, step, output_folder):
 
         out_file = os.path.join(output_folder, f"score_distribution_{label}.png")
         plt.savefig(out_file)
-    }
 
 
 # Parse the input arguments
