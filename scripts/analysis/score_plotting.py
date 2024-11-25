@@ -5,6 +5,7 @@ import os
 import tarfile
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 def extract_csvs(output_dir, name_prefix, set_label):
     csv_data = []
