@@ -17,6 +17,7 @@ def extract_csvs(output_dir, name_prefix, set_label):
                 extracted_csv_path = os.path.join(output_dir, member.name)
                 # Read the CSV and convert it to a Series
                 data = pd.read_csv(extracted_csv_path, header=None).iloc[:, 0]
+                print("Data: " + data)
                 csv_data.append(data)
                 os.remove(extracted_csv_path)  # Clean up extracted file
     return csv_data
@@ -30,7 +31,9 @@ def plot_distributions(data_list, set_label, bin_size=500):
         bin_size (int): Size of the bins for grouping the data.
     """
     # Concatenate all data into a single Series
+    print("Data list: " + data_list)
     all_numbers = pd.concat(data_list)
+    print("All Numbers: " + all_numbers)
     
     # Calculate the bins explicitly, starting from 0
     max_value = all_numbers.max()
