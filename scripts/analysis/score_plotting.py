@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+import argparse
 import os
 import tarfile
 import pandas as pd
