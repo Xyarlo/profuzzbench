@@ -15,12 +15,15 @@ def extract_csvs(output_dir, name_prefix, set_label):
                 member = next(member for member in tar.getmembers() if member.name.endswith("state_scores.csv"))
                 tar.extract(member, output_dir)
                 extracted_csv_path = os.path.join(output_dir, member.name)
-                # Read the CSV and convert it to a Series
-                data = pd.read_csv(extracted_csv_path, header=None).iloc[:, 0]
+                
+                # Read the CSV as a single row, then flatten into a Series
+                data = pd.read_csv(extracted_csv_path, header=None).iloc[0]
+                csv_data.append(data)
                 print("\nData: ")
                 print(data)
-                csv_data.append(data)
-                os.remove(extracted_csv_path)  # Clean up extracted file
+                
+                # Clean up the extracted file
+                os.remove(extracted_csv_path)
     return csv_data
 
 def plot_distributions(data_list, set_label, bin_size=500):
