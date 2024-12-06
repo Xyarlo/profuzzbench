@@ -9,6 +9,14 @@ import numpy as np
 
 
 def extract_csvs(output_dir, name_prefix):
+    """
+    Extracts the 'id' and 'scores' columns from 'state_stats.csv' in tar.gz files.
+    Args:
+        output_dir (str): Directory where extracted files are temporarily saved.
+        name_prefix (str): Prefix of the tar.gz files to process (e.g., "out-aflnet-").
+    Returns:
+        list: A list of DataFrames containing 'id' and 'scores' columns.
+    """
     csv_data = []
     for file_name in sorted(os.listdir(".")):
         if file_name.startswith(name_prefix) and file_name.endswith(".tar.gz"):
@@ -29,6 +37,17 @@ def extract_csvs(output_dir, name_prefix):
 
 def plot_distributions(data_list, set_label, bin_size=500, title_fontsize=14, label_fontsize=12, tick_fontsize=10,
                        output_file="distribution_plot.png"):
+    """
+    Plots the distribution of averaged scores grouped into ranges.
+    Args:
+        data_list (list): List of DataFrames with 'id' and 'scores' columns.
+        set_label (str): Label for the set (e.g., "aflnet-tuples").
+        bin_size (int): Size of the bins for grouping the scores.
+        title_fontsize (int): Font size for the plot title.
+        label_fontsize (int): Font size for the axis labels.
+        tick_fontsize (int): Font size for the axis ticks.
+        output_file (str): Output file path for the plot.
+    """
     # Combine all data into a single DataFrame
     combined_data = pd.concat(data_list)
 
