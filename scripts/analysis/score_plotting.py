@@ -25,12 +25,11 @@ def extract_csvs(output_dir, name_prefix):
                 member = next(member for member in tar.getmembers() if member.name.endswith("state_stats.csv"))
                 tar.extract(member, output_dir)
                 extracted_csv_path = os.path.join(output_dir, member.name)
-
+                
                 # Read the CSV and extract the 'id' and 'scores' columns
                 data = pd.read_csv(extracted_csv_path)[['id', 'score']]
                 csv_data.append(data)
-
-                # Clean up the extracted file
+                
                 os.remove(extracted_csv_path)
     return csv_data
 
@@ -57,7 +56,7 @@ def plot_distributions(data_list, set_label, bin_size=500, title_fontsize=14, la
     # Bin the averaged scores
     max_score = average_scores['score'].max()
     bins = np.arange(0, max_score + bin_size, bin_size)
-
+    
     # Plot the histogram of binned averages
     plt.figure(figsize=(12, 6))
     plt.hist(average_scores['score'], bins=bins, alpha=0.7, label=f"Set {set_label}", edgecolor="black")
@@ -67,7 +66,7 @@ def plot_distributions(data_list, set_label, bin_size=500, title_fontsize=14, la
     plt.xticks(fontsize=tick_fontsize)
     plt.yticks(fontsize=tick_fontsize)
     plt.legend()
-
+    
     # Save the plot
     plt.tight_layout()
     plt.savefig(output_file)
@@ -90,7 +89,7 @@ def main(csv_file, put, step, output_folder):
 
 # Parse the input arguments
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()    
     parser.add_argument('-i','--csv_file',type=str,required=True,help="Full path to results.csv")
     parser.add_argument('-p','--put',type=str,required=True,help="Name of the subject program")
     parser.add_argument('-s','--step',type=int,required=True,help="Score step")
