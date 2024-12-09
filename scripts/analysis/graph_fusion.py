@@ -43,6 +43,6 @@ def extract_and_merge_graphs(set_label):
     print(f"Combined graph for set {set_label} written to {output_path}")
 
 # Process both sets (replace 'set1' and 'set2' with your actual set labels)
-set_labels = ["set1", "set2"]  # Replace with your actual set labels
+set_labels = ["aflnet", "aflnet-tuples"]  # Replace with your actual set labels
 for set_label in set_labels:
     extract_and_merge_graphs(set_label)
