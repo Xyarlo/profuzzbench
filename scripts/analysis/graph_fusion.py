@@ -1,8 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import os
 import tarfile
 import networkx as nx
+import pydot  # For parsing .dot files
 
 # Input folder and output folder
 input_folder = "."
@@ -35,8 +36,12 @@ def extract_and_merge_graphs(set_label):
             with tar.extractfile(ipsm_file) as file:
                 if file:
                     dot_data = file.read().decode('utf-8')  # Decode bytes to string
-                    temp_graph = nx.drawing.nx_pydot.read_dot(dot_data)
-                    graph = nx.compose(graph, temp_graph)  # Merge graphs
+                    
+                    # Parse the dot data with pydot
+                    pydot_graphs = pydot.graph_from_dot_data(dot_data)
+                    if pydot_graphs:  # Ensure at least one graph is parsed
+                        temp_graph = nx.from_pydot(pydot_graphs[0])  # Convert the first pydot graph to networkx graph
+                        graph = nx.compose(graph, temp_graph)  # Merge graphs
     
     # Write the combined graph to a new .dot file
     output_path = os.path.join(output_folder, f"ipsm-{set_label}.dot")
