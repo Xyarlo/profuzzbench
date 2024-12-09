@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import tarfile
@@ -34,7 +34,8 @@ def extract_and_merge_graphs(set_label):
             ipsm_file = ipsm_file[0]  # There should be only one
             with tar.extractfile(ipsm_file) as file:
                 if file:
-                    temp_graph = nx.drawing.nx_pydot.read_dot(file)
+                    dot_data = file.read().decode('utf-8')  # Decode bytes to string
+                    temp_graph = nx.drawing.nx_pydot.read_dot(dot_data)
                     graph = nx.compose(graph, temp_graph)  # Merge graphs
     
     # Write the combined graph to a new .dot file
