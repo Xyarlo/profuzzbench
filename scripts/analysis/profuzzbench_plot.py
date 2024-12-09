@@ -21,7 +21,7 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
 
     # Calculate mean and standard deviation for each time interval
     for subject in [put]:
-        for fuzzer in ['aflnet', 'aflnet-tuples']:
+        for fuzzer in ['aflnet', 'aflnet-tuples', 'tuples-random']:
             for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per', 'states_abs', 'fuzzed_seeds']:
                 # Get subject, fuzzer, and cov_type-specific DataFrame
                 df1 = df[(df['subject'] == subject) & 
