@@ -44,9 +44,12 @@ def extract_and_merge_graphs(set_label):
                         
                         # Validate the temp_graph
                         if isinstance(temp_graph, (nx.Graph, nx.DiGraph)):
+                            print(f"Merging graph from {tar_path}...")
                             graph = nx.compose(graph, temp_graph)  # Merge graphs
                         else:
-                            print(f"Invalid graph object in {tar_path}")
+                            print(f"Invalid graph object from {tar_path}. Type: {type(temp_graph)}")
+                    else:
+                        print(f"Failed to parse .dot data from {tar_path}")
     
     # Write the combined graph to a new .dot file
     output_path = os.path.join(output_folder, f"ipsm-{set_label}.dot")
