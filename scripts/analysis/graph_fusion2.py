@@ -25,25 +25,30 @@ def merge_dot_graphs(dot_files, output_file):
     """
     Merges multiple .dot files into a single graph and saves the result.
     """
-    master_graph = None
+    master_graph = pydot.Dot(graph_type='digraph', strict=True)  # Ensure strict graph mode
+    added_nodes = set()
+    added_edges = set()
 
     for dot_file in dot_files:
         try:
             graphs = pydot.graph_from_dot_file(dot_file)
             if graphs:
                 for graph in graphs:
-                    if master_graph is None:
-                        master_graph = graph
-                    else:
-                        for node in graph.get_nodes():
-                            if node not in master_graph.get_nodes():
-                                master_graph.add_node(node)
-                        for edge in graph.get_edges():
+                    for node in graph.get_nodes():
+                        node_id = node.get_name()
+                        if node_id not in added_nodes:
+                            master_graph.add_node(node)
+                            added_nodes.add(node_id)
+
+                    for edge in graph.get_edges():
+                        edge_tuple = (edge.get_source(), edge.get_destination())
+                        if edge_tuple not in added_edges:
                             master_graph.add_edge(edge)
+                            added_edges.add(edge_tuple)
         except Exception as e:
             print(f"Error processing {dot_file}: {e}")
-    
-    if master_graph:
+
+    if master_graph.get_nodes():
         master_graph.write_raw(output_file)
         print(f"Merged graph saved to {output_file}")
     else:
