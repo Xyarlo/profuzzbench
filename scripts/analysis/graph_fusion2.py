@@ -2,24 +2,22 @@
 
 import os
 import tarfile
-import tempfile
 import pydot
-from collections import defaultdict
+from pathlib import Path
 
-def extract_dot_files_from_tar(tar_path, extract_dir):
+
+def extract_tar_to_unique_dir(tar_path, extract_to_base):
     """
-    Extracts all .dot files from a given .tar.gz file into a temporary directory.
+    Extract a .tar.gz file to a unique directory inside extract_to_base.
     """
-    dot_files = []
-    try:
-        with tarfile.open(tar_path, "r:gz") as tar:
-            for member in tar.getmembers():
-                if member.name.endswith(".dot"):
-                    tar.extract(member, extract_dir)
-                    dot_files.append(os.path.join(extract_dir, member.name))
-    except Exception as e:
-        print(f"Error extracting {tar_path}: {e}")
-    return dot_files
+    unique_dir = Path(extract_to_base) / tar_path.stem  # Unique dir based on the tar.gz name
+    unique_dir.mkdir(parents=True, exist_ok=True)
+
+    with tarfile.open(tar_path, "r:gz") as tar:
+        tar.extractall(unique_dir)
+    
+    return unique_dir
+
 
 def merge_dot_graphs(dot_files, output_file):
     """
@@ -64,28 +62,6 @@ def merge_dot_graphs(dot_files, output_file):
                         else:
                             print(f"Skipped duplicate edge: {edge_source} -> {edge_dest}")
 
-                    # Handle subgraphs explicitly
-                    for subgraph in graph.get_subgraphs():
-                        for node in subgraph.get_nodes():
-                            node_id = normalize_identifier(node.get_name())
-                            if node_id not in added_nodes:
-                                master_graph.add_node(node)
-                                added_nodes.add(node_id)
-                                print(f"Added node (subgraph): {node_id}")
-                            else:
-                                print(f"Skipped duplicate node (subgraph): {node_id}")
-
-                        for edge in subgraph.get_edges():
-                            edge_source = normalize_identifier(edge.get_source())
-                            edge_dest = normalize_identifier(edge.get_destination())
-                            edge_tuple = (edge_source, edge_dest)
-                            if edge_tuple not in added_edges:
-                                master_graph.add_edge(edge)
-                                added_edges.add(edge_tuple)
-                                print(f"Added edge (subgraph): {edge_source} -> {edge_dest}")
-                            else:
-                                print(f"Skipped duplicate edge (subgraph): {edge_source} -> {edge_dest}")
-
         except Exception as e:
             print(f"Error processing {dot_file}: {e}")
 
@@ -101,37 +77,37 @@ def merge_dot_graphs(dot_files, output_file):
 
 def process_tar_files_by_set(tar_files, output_dir):
     """
-    Groups .tar.gz files by exact set name, extracts .dot files, merges them, and saves the merged graphs.
+    Process tar.gz files by set names and merge graphs.
     """
-    grouped_files = {"aflnet": [], "aflnet-tuples": []}
-
-    # Assign files to their respective sets
+    grouped_files = {}
     for tar_file in tar_files:
-        if "-aflnet_" in tar_file:
-            grouped_files["aflnet"].append(tar_file)
-        elif "-aflnet-tuples_" in tar_file:
-            grouped_files["aflnet-tuples"].append(tar_file)
+        set_name = tar_file.stem.split("-")[-1].split("_")[0]  # Extract the set name
+        grouped_files.setdefault(set_name, []).append(tar_file)
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        for set_name, files in grouped_files.items():
-            if not files:
-                print(f"No files found for set: {set_name}")
-                continue
+    for set_name, files in grouped_files.items():
+        print(f"Processing set: {set_name}")
 
-            print(f"Processing set: {set_name}")
-            all_dot_files = []
+        extracted_dot_files = []
+        for tar_file in files:
+            extracted_dir = extract_tar_to_unique_dir(tar_file, output_dir)
+            extracted_dot_file = extracted_dir / "ipsm.dot"
+            if extracted_dot_file.exists():
+                extracted_dot_files.append(extracted_dot_file)
+            else:
+                print(f"No 'ipsm.dot' found in {tar_file}.")
 
-            for tar_file in files:
-                print(f"  Extracting {tar_file}...")
-                extracted_dot_files = extract_dot_files_from_tar(tar_file, temp_dir)
-                all_dot_files.extend(extracted_dot_files)
+        # Merge the .dot files for the current set
+        if extracted_dot_files:
+            merged_file_path = Path(output_dir) / f"merged_graph_{set_name}.dot"
+            merge_dot_graphs(extracted_dot_files, merged_file_path)
+        else:
+            print(f"No .dot files to merge for set: {set_name}")
 
-            output_file = os.path.join(output_dir, f"merged_graph_{set_name}.dot")
-            merge_dot_graphs(all_dot_files, output_file)
 
-if __name__ == "__main__":
-    tar_dir = "."
-    output_dir = "./merged_graphs"
-    os.makedirs(output_dir, exist_ok=True)
-    tar_files = [os.path.join(tar_dir, f) for f in os.listdir(tar_dir) if f.endswith(".tar.gz")]
-    process_tar_files_by_set(tar_files, output_dir)
+# Example Usage
+input_tar_dir = "."  # Directory containing .tar.gz files
+output_dir = "./merged_graphs"
+
+Path(output_dir).mkdir(parents=True, exist_ok=True)
+tar_files = list(Path(input_tar_dir).glob("*.tar.gz"))
+process_tar_files_by_set(tar_files, output_dir)
