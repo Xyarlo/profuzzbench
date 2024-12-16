@@ -25,26 +25,51 @@ def merge_dot_graphs(dot_files, output_file):
     """
     Merges multiple .dot files into a single graph and saves the result.
     """
-    master_graph = pydot.Dot(graph_type='digraph', strict=True)  # Ensure strict graph mode
+    master_graph = pydot.Dot(graph_type='digraph', strict=True)  # Strict to prevent duplicates
     added_nodes = set()
     added_edges = set()
+
+    def normalize_identifier(identifier):
+        """Normalize node or edge identifiers for consistent comparison."""
+        return identifier.strip('"').strip()
 
     for dot_file in dot_files:
         try:
             graphs = pydot.graph_from_dot_file(dot_file)
             if graphs:
                 for graph in graphs:
+                    # Add nodes
                     for node in graph.get_nodes():
-                        node_id = node.get_name()
+                        node_id = normalize_identifier(node.get_name())
                         if node_id not in added_nodes:
                             master_graph.add_node(node)
                             added_nodes.add(node_id)
 
+                    # Add edges
                     for edge in graph.get_edges():
-                        edge_tuple = (edge.get_source(), edge.get_destination())
+                        edge_source = normalize_identifier(edge.get_source())
+                        edge_dest = normalize_identifier(edge.get_destination())
+                        edge_tuple = (edge_source, edge_dest)
                         if edge_tuple not in added_edges:
                             master_graph.add_edge(edge)
                             added_edges.add(edge_tuple)
+
+                    # Handle subgraphs explicitly
+                    for subgraph in graph.get_subgraphs():
+                        for node in subgraph.get_nodes():
+                            node_id = normalize_identifier(node.get_name())
+                            if node_id not in added_nodes:
+                                master_graph.add_node(node)
+                                added_nodes.add(node_id)
+
+                        for edge in subgraph.get_edges():
+                            edge_source = normalize_identifier(edge.get_source())
+                            edge_dest = normalize_identifier(edge.get_destination())
+                            edge_tuple = (edge_source, edge_dest)
+                            if edge_tuple not in added_edges:
+                                master_graph.add_edge(edge)
+                                added_edges.add(edge_tuple)
+
         except Exception as e:
             print(f"Error processing {dot_file}: {e}")
 
