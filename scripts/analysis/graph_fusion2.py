@@ -33,17 +33,24 @@ def merge_dot_graphs(dot_files, output_file):
         """Normalize node or edge identifiers for consistent comparison."""
         return identifier.strip('"').strip()
 
+    print(f"Merging {len(dot_files)} files into {output_file}...")
+
     for dot_file in dot_files:
         try:
             graphs = pydot.graph_from_dot_file(dot_file)
             if graphs:
                 for graph in graphs:
+                    print(f"Processing {dot_file}...")
+
                     # Add nodes
                     for node in graph.get_nodes():
                         node_id = normalize_identifier(node.get_name())
                         if node_id not in added_nodes:
                             master_graph.add_node(node)
                             added_nodes.add(node_id)
+                            print(f"Added node: {node_id}")
+                        else:
+                            print(f"Skipped duplicate node: {node_id}")
 
                     # Add edges
                     for edge in graph.get_edges():
@@ -53,6 +60,9 @@ def merge_dot_graphs(dot_files, output_file):
                         if edge_tuple not in added_edges:
                             master_graph.add_edge(edge)
                             added_edges.add(edge_tuple)
+                            print(f"Added edge: {edge_source} -> {edge_dest}")
+                        else:
+                            print(f"Skipped duplicate edge: {edge_source} -> {edge_dest}")
 
                     # Handle subgraphs explicitly
                     for subgraph in graph.get_subgraphs():
@@ -61,6 +71,9 @@ def merge_dot_graphs(dot_files, output_file):
                             if node_id not in added_nodes:
                                 master_graph.add_node(node)
                                 added_nodes.add(node_id)
+                                print(f"Added node (subgraph): {node_id}")
+                            else:
+                                print(f"Skipped duplicate node (subgraph): {node_id}")
 
                         for edge in subgraph.get_edges():
                             edge_source = normalize_identifier(edge.get_source())
@@ -69,15 +82,22 @@ def merge_dot_graphs(dot_files, output_file):
                             if edge_tuple not in added_edges:
                                 master_graph.add_edge(edge)
                                 added_edges.add(edge_tuple)
+                                print(f"Added edge (subgraph): {edge_source} -> {edge_dest}")
+                            else:
+                                print(f"Skipped duplicate edge (subgraph): {edge_source} -> {edge_dest}")
 
         except Exception as e:
             print(f"Error processing {dot_file}: {e}")
+
+    print(f"Total nodes in merged graph: {len(added_nodes)}")
+    print(f"Total edges in merged graph: {len(added_edges)}")
 
     if master_graph.get_nodes():
         master_graph.write_raw(output_file)
         print(f"Merged graph saved to {output_file}")
     else:
         print(f"No valid graphs to merge for {output_file}")
+
 
 def process_tar_files_by_set(tar_files, output_dir):
     """
