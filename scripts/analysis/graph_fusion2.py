@@ -3,8 +3,7 @@
 import os
 import tarfile
 import tempfile
-import networkx as nx
-from networkx.drawing.nx_agraph import read_dot, write_dot
+import pydot
 from collections import defaultdict
 
 def extract_dot_files_from_tar(tar_path, extract_dir):
@@ -26,41 +25,49 @@ def merge_dot_graphs(dot_files, output_file):
     """
     Merges multiple .dot files into a single graph and saves the result.
     """
-    master_graph = nx.MultiDiGraph()
-    
+    master_graph = None
+
     for dot_file in dot_files:
         try:
-            temp_graph = read_dot(dot_file)
-            
-            for node, data in temp_graph.nodes(data=True):
-                if not master_graph.has_node(node):
-                    master_graph.add_node(node, **data)
-                else:
-                    master_graph.nodes[node].update(data)
-            
-            for u, v, key, data in temp_graph.edges(data=True, keys=True):
-                master_graph.add_edge(u, v, key=key, **data)
-        
+            graphs = pydot.graph_from_dot_file(dot_file)
+            if graphs:
+                for graph in graphs:
+                    if master_graph is None:
+                        master_graph = graph
+                    else:
+                        for node in graph.get_nodes():
+                            if node not in master_graph.get_nodes():
+                                master_graph.add_node(node)
+                        for edge in graph.get_edges():
+                            master_graph.add_edge(edge)
         except Exception as e:
             print(f"Error processing {dot_file}: {e}")
     
-    write_dot(master_graph, output_file)
-    print(f"Merged graph saved to {output_file}")
+    if master_graph:
+        master_graph.write_raw(output_file)
+        print(f"Merged graph saved to {output_file}")
+    else:
+        print(f"No valid graphs to merge for {output_file}")
 
 def process_tar_files_by_set(tar_files, output_dir):
     """
-    Groups .tar.gz files by set name, extracts .dot files, merges them, and saves the merged graphs.
+    Groups .tar.gz files by exact set name, extracts .dot files, merges them, and saves the merged graphs.
     """
-    # Group tar files by set name (e.g., "lightftp-aflnet" or "lightftp-someother")
-    grouped_files = defaultdict(list)
+    grouped_files = {"aflnet": [], "aflnet-tuples": []}
+
+    # Assign files to their respective sets
     for tar_file in tar_files:
-        # Extract set name from filename (e.g., "out-lightftp-aflnet_1.tar.gz" -> "aflnet")
-        base_name = os.path.basename(tar_file)
-        set_name = base_name.split("-")[2].split("_")[0]
-        grouped_files[set_name].append(tar_file)
+        if "-aflnet_" in tar_file:
+            grouped_files["aflnet"].append(tar_file)
+        elif "-aflnet-tuples_" in tar_file:
+            grouped_files["aflnet-tuples"].append(tar_file)
 
     with tempfile.TemporaryDirectory() as temp_dir:
         for set_name, files in grouped_files.items():
+            if not files:
+                print(f"No files found for set: {set_name}")
+                continue
+
             print(f"Processing set: {set_name}")
             all_dot_files = []
 
@@ -69,20 +76,12 @@ def process_tar_files_by_set(tar_files, output_dir):
                 extracted_dot_files = extract_dot_files_from_tar(tar_file, temp_dir)
                 all_dot_files.extend(extracted_dot_files)
 
-            # Merge and save the merged graph for this set
             output_file = os.path.join(output_dir, f"merged_graph_{set_name}.dot")
             merge_dot_graphs(all_dot_files, output_file)
 
 if __name__ == "__main__":
-    # Directory containing all .tar.gz files
     tar_dir = "."
     output_dir = "./merged_graphs"
-    
-    # Ensure the output directory exists
     os.makedirs(output_dir, exist_ok=True)
-    
-    # Collect all .tar.gz files
     tar_files = [os.path.join(tar_dir, f) for f in os.listdir(tar_dir) if f.endswith(".tar.gz")]
-    
-    # Process and merge graphs by set name
     process_tar_files_by_set(tar_files, output_dir)
