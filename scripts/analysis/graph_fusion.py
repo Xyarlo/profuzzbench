@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import tarfile
@@ -40,8 +40,13 @@ def extract_and_merge_graphs(set_label):
                     # Parse the dot data with pydot
                     pydot_graphs = pydot.graph_from_dot_data(dot_data)
                     if pydot_graphs:  # Ensure at least one graph is parsed
-                        temp_graph = nx.from_pydot(pydot_graphs[0])  # Convert the first pydot graph to networkx graph
-                        graph = nx.compose(graph, temp_graph)  # Merge graphs
+                        temp_graph = nx.drawing.nx_pydot.from_pydot(pydot_graphs[0])  # Convert to networkx graph
+                        
+                        # Validate the temp_graph
+                        if isinstance(temp_graph, (nx.Graph, nx.DiGraph)):
+                            graph = nx.compose(graph, temp_graph)  # Merge graphs
+                        else:
+                            print(f"Invalid graph object in {tar_path}")
     
     # Write the combined graph to a new .dot file
     output_path = os.path.join(output_folder, f"ipsm-{set_label}.dot")
