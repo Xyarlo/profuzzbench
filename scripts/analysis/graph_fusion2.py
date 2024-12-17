@@ -5,68 +5,51 @@ import tarfile
 import pydot
 from pathlib import Path
 
-
 def extract_tar_to_unique_dir(tar_path, extract_to_base):
     """
-    Extract a .tar.gz file to a unique directory inside extract_to_base.
+    Extract a .tar.gz file into a unique subdirectory of extract_to_base.
     """
-    unique_dir = Path(extract_to_base) / tar_path.stem  # Unique dir based on the tar.gz name
+    unique_dir = Path(extract_to_base) / tar_path.stem  # Unique directory name
     unique_dir.mkdir(parents=True, exist_ok=True)
-
-    with tarfile.open(tar_path, "r:gz") as tar:
-        tar.extractall(unique_dir)
     
+    with tarfile.open(tar_path, "r:gz") as tar:
+        tar.extractall(unique_dir)  # Extract all files into the unique directory
     return unique_dir
+
+
+def find_ipsm_dot_files(extracted_dir):
+    """
+    Find all `ipsm.dot` files in the extracted directory.
+    """
+    return list(Path(extracted_dir).rglob("ipsm.dot"))
 
 
 def merge_dot_graphs(dot_files, output_file):
     """
-    Merges multiple .dot files into a single graph and saves the result.
+    Merge multiple .dot files into a single graph and save the result.
     """
-    master_graph = pydot.Dot(graph_type='digraph', strict=True)  # Strict to prevent duplicates
+    master_graph = pydot.Dot(graph_type='digraph', strict=True)
     added_nodes = set()
     added_edges = set()
-
-    def normalize_identifier(identifier):
-        """Normalize node or edge identifiers for consistent comparison."""
-        return identifier.strip('"').strip()
 
     print(f"Merging {len(dot_files)} files into {output_file}...")
 
     for dot_file in dot_files:
         try:
-            graphs = pydot.graph_from_dot_file(dot_file)
+            graphs = pydot.graph_from_dot_file(str(dot_file))
             if graphs:
                 for graph in graphs:
-                    print(f"Processing {dot_file}...")
-
-                    # Add nodes
                     for node in graph.get_nodes():
-                        node_id = normalize_identifier(node.get_name())
-                        if node_id not in added_nodes:
+                        if node.get_name() not in added_nodes:
                             master_graph.add_node(node)
-                            added_nodes.add(node_id)
-                            print(f"Added node: {node_id}")
-                        else:
-                            print(f"Skipped duplicate node: {node_id}")
-
-                    # Add edges
+                            added_nodes.add(node.get_name())
                     for edge in graph.get_edges():
-                        edge_source = normalize_identifier(edge.get_source())
-                        edge_dest = normalize_identifier(edge.get_destination())
-                        edge_tuple = (edge_source, edge_dest)
+                        edge_tuple = (edge.get_source(), edge.get_destination())
                         if edge_tuple not in added_edges:
                             master_graph.add_edge(edge)
                             added_edges.add(edge_tuple)
-                            print(f"Added edge: {edge_source} -> {edge_dest}")
-                        else:
-                            print(f"Skipped duplicate edge: {edge_source} -> {edge_dest}")
-
         except Exception as e:
             print(f"Error processing {dot_file}: {e}")
-
-    print(f"Total nodes in merged graph: {len(added_nodes)}")
-    print(f"Total edges in merged graph: {len(added_edges)}")
 
     if master_graph.get_nodes():
         master_graph.write_raw(output_file)
@@ -77,7 +60,7 @@ def merge_dot_graphs(dot_files, output_file):
 
 def process_tar_files_by_set(tar_files, output_dir):
     """
-    Process tar.gz files by set names and merge graphs.
+    Process tar.gz files grouped by set names and merge their graphs.
     """
     grouped_files = {}
     for tar_file in tar_files:
@@ -85,18 +68,20 @@ def process_tar_files_by_set(tar_files, output_dir):
         grouped_files.setdefault(set_name, []).append(tar_file)
 
     for set_name, files in grouped_files.items():
-        print(f"Processing set: {set_name}")
-
+        print(f"\nProcessing set: {set_name}")
         extracted_dot_files = []
+
+        # Extract each .tar.gz into a unique directory
         for tar_file in files:
             extracted_dir = extract_tar_to_unique_dir(tar_file, output_dir)
-            extracted_dot_file = extracted_dir / "ipsm.dot"
-            if extracted_dot_file.exists():
-                extracted_dot_files.append(extracted_dot_file)
+            ipsm_files = find_ipsm_dot_files(extracted_dir)
+            if ipsm_files:
+                extracted_dot_files.extend(ipsm_files)
+                print(f"Found {len(ipsm_files)} ipsm.dot file(s) in {tar_file}")
             else:
-                print(f"No 'ipsm.dot' found in {tar_file}.")
+                print(f"No 'ipsm.dot' found in {tar_file}")
 
-        # Merge the .dot files for the current set
+        # Merge all the .dot files for this set
         if extracted_dot_files:
             merged_file_path = Path(output_dir) / f"merged_graph_{set_name}.dot"
             merge_dot_graphs(extracted_dot_files, merged_file_path)
