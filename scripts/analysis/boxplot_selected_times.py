@@ -7,29 +7,26 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def extract_csvs(output_dir, name_prefix):
-    """
-    Extracts the 'id' and 'selected_times' columns from 'state_stats.csv' in tar.gz files.
-    Args:
-        output_dir (str): Directory where extracted files are temporarily saved.
-        name_prefix (str): Prefix of the tar.gz files to process (e.g., "out-aflnet-").
-    Returns:
-        DataFrame: A DataFrame containing 'id' and averaged 'selected_times'.
-    """
+
     csv_data = []
     for file_name in sorted(os.listdir(".")):
         if file_name.startswith(name_prefix) and file_name.endswith(".tar.gz"):
             with tarfile.open(file_name, "r:gz") as tar:
                 # Look for 'state_stats.csv' in the archive
-                member = next(member for member in tar.getmembers() if member.name.endswith("state_stats.csv"))
-                tar.extract(member, output_dir)
-                extracted_csv_path = os.path.join(output_dir, member.name)
+                member = next((m for m in tar.getmembers() if m.name.endswith("state_stats.csv")), None)
+                if member:
+                    tar.extract(member, output_dir)
+                    extracted_csv_path = os.path.join(output_dir, member.name)
 
-                # Read the CSV and extract the 'id' and 'selected_times' columns
-                data = pd.read_csv(extracted_csv_path)[['id', 'selected_times']]
-                csv_data.append(data)
+                    # Read the CSV and extract the 'id' and 'selected_times' columns
+                    data = pd.read_csv(extracted_csv_path)[['id', 'selected_times']]
+                    csv_data.append(data)
 
-                # Clean up the extracted file
-                os.remove(extracted_csv_path)
+                    # Clean up the extracted file
+                    os.remove(extracted_csv_path)
+
+    if not csv_data:
+        return None  # No matching files found
 
     # Combine all data and compute averages for 'selected_times' grouped by 'id'
     combined_data = pd.concat(csv_data)
@@ -38,13 +35,7 @@ def extract_csvs(output_dir, name_prefix):
     return averaged_data
 
 def plot_boxplot(data_list, set_label, output_file):
-    """
-    Plots a horizontally oriented boxplot of 'selected_times' grouped by 'id' for each set.
-    Args:
-        data_list (list): List of DataFrames with 'id' and averaged 'selected_times'.
-        set_label (str): Label for the set (e.g., "aflnet-tuples").
-        output_file (str): Output file path for the plot.
-    """
+    
     plt.figure(figsize=(12, 6))
     
     # Extract 'selected_times' data for boxplot
@@ -62,14 +53,19 @@ def plot_boxplot(data_list, set_label, output_file):
     plt.savefig(output_file)
 
 def main(csv_file, put, output_folder):
+
     os.makedirs(output_folder, exist_ok=True)
 
-    set_labels = ["aflnet", "aflnet-tuples", "tuples-random"]
+    set_labels = ["aflnet", "aflnet-tuples", "tuples-random", "tuples-delayed"]
 
     for label in set_labels:
         print(f"Processing {label}...")
         # Extract CSV data for the current set
         set_data = extract_csvs(output_folder, f"out-{put}-{label}_")
+        
+        if set_data is None:
+            print(f"Set {label} not found.")
+            continue
         
         # Plot boxplot for selected_times
         output_file = os.path.join(output_folder, f"selected_times_{label}.png")
