@@ -6,15 +6,6 @@ import pandas as pd
 
 
 def extract_code_scores(output_dir, name_prefix, columns):
-    """
-    Extracts specific columns from 'state_stats.csv' in tar.gz files.
-    Args:
-        output_dir (str): Directory where extracted files are temporarily saved.
-        name_prefix (str): Prefix of the tar.gz files to process (e.g., "out-aflnet-").
-        columns (list): List of columns to extract (e.g., ['code2', 'score']).
-    Returns:
-        DataFrame: A DataFrame containing the extracted columns, averaged if necessary.
-    """
     data_frames = []
     for file_name in sorted(os.listdir(".")):
         if file_name.startswith(name_prefix) and file_name.endswith(".tar.gz"):
@@ -48,19 +39,20 @@ def main(put, output_folder):
     # Extract data for aflnet
     print("Processing aflnet...")
     aflnet_data = extract_code_scores(output_folder, "out-aflnet", ['id', 'score'])
+    aflnet_data.rename(columns={'id': 'code', 'score': 'aflnet'}, inplace=True)
 
-    # Map id to score for aflnet
-    aflnet_scores = dict(zip(aflnet_data['id'], aflnet_data['score']))
+    # Initialize the result DataFrame with aflnet data
+    result = aflnet_data
 
-    # Prepare the result DataFrame
-    result = pd.DataFrame({'code': aflnet_data['id'], 'aflnet': aflnet_data['score']})
-
-    # Process other sets and map averaged scores to the corresponding codes
+    # Process other sets and merge averaged scores
     for set_name in sets:
         print(f"Processing {set_name}...")
         set_data = extract_code_scores(output_folder, f"out-{set_name}", ['code2', 'score'])
-        set_scores = dict(zip(set_data['code2'], set_data['score']))
-        result[set_name] = result['code'].map(set_scores)
+        set_data.rename(columns={'code2': 'code', 'score': set_name}, inplace=True)
+        result = pd.merge(result, set_data, on='code', how='outer')
+
+    # Fill missing values with 'n/a'
+    result.fillna('n/a', inplace=True)
 
     # Save the result to a new CSV file
     output_file = os.path.join(output_folder, "score_comparison.csv")
