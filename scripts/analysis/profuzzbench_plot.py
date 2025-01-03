@@ -7,6 +7,7 @@ from pandas import DataFrame
 from matplotlib import pyplot as plt
 import pandas as pd
 
+
 def main(csv_file, put, runs, cut_off, step, output_folder):
     os.makedirs(output_folder, exist_ok=True)
     out_file = os.path.join(output_folder, "cov_over_time.png")
@@ -21,7 +22,7 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
 
     # Calculate mean and standard deviation for each time interval
     for subject in [put]:
-        for fuzzer in ['aflnet', 'aflnet-tuples', 'tuples-random']:
+        for fuzzer in ['aflnet', 'aflnet-tuples', 'tuples-random', "tuples-delayed"]:
             for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per', 'states_abs', 'fuzzed_seeds']:
                 # Get subject, fuzzer, and cov_type-specific DataFrame
                 df1 = df[(df['subject'] == subject) & 
@@ -133,6 +134,7 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
 
     plt.tight_layout()
     plt.savefig(out_file_stats)
+
 
 # Parse the input arguments
 if __name__ == '__main__':
