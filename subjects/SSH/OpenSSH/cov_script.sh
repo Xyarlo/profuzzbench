@@ -17,7 +17,7 @@ gcovr -r . -s -d > /dev/null 2>&1
 
 #output the header of the coverage file which is in the CSV format
 #Time: timestamp, l_per/b_per and l_abs/b_abs: line/branch coverage in percentage and absolutate number
-echo "Time,l_per,l_abs,b_per,b_abs" >> $covfile
+echo "Time,l_per,l_abs,b_per,b_abs,states_abs,fuzzed_seeds" >> $covfile
 
 #files stored in replayable-* folders are structured
 #in such a way that messages are separated
@@ -43,7 +43,16 @@ for f in $(echo $folder/$testdir/*.raw); do
   b_per=$(echo "$cov_data" | grep branch | cut -d" " -f2 | rev | cut -c2- | rev)
   b_abs=$(echo "$cov_data" | grep branch | cut -d" " -f3 | cut -c2-)
   
-  echo "$time,$l_per,$l_abs,$b_per,$b_abs" >> $covfile
+  # Extract state coverage from the file
+  states_abs=$(strings "$f" | grep -oP '(?<=# State Coverage: )\d+')
+  states_abs=${states_abs:-0}  # Default to 0 if not found
+
+  # Extract fuzzed seeds from the file
+  fuzzed_seeds=$(strings "$f" | grep -oP '(?<=# Fuzzed Seeds: )\d+')
+  fuzzed_seeds=${fuzzed_seeds:-0}  # Default to 0 if not found
+
+  # Log the coverage data along with state coverage and fuzzed seeds
+  echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs,$fuzzed_seeds" >> $covfile
 done
 
 #process other testcases
@@ -64,7 +73,16 @@ for f in $(echo $folder/$testdir/id*); do
   b_per=$(echo "$cov_data" | grep branch | cut -d" " -f2 | rev | cut -c2- | rev)
   b_abs=$(echo "$cov_data" | grep branch | cut -d" " -f3 | cut -c2-)
   
-  echo "$time,$l_per,$l_abs,$b_per,$b_abs" >> $covfile
+  # Extract state coverage from the file
+  states_abs=$(strings "$f" | grep -oP '(?<=# State Coverage: )\d+')
+  states_abs=${states_abs:-0}  # Default to 0 if not found
+
+  # Extract fuzzed seeds from the file
+  fuzzed_seeds=$(strings "$f" | grep -oP '(?<=# Fuzzed Seeds: )\d+')
+  fuzzed_seeds=${fuzzed_seeds:-0}  # Default to 0 if not found
+
+  # Log the coverage data along with state coverage and fuzzed seeds
+  echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs,$fuzzed_seeds" >> $covfile
 done
 
 #ouput cov data for the last testcase(s) if step > 1
@@ -77,5 +95,14 @@ then
   b_per=$(echo "$cov_data" | grep branch | cut -d" " -f2 | rev | cut -c2- | rev)
   b_abs=$(echo "$cov_data" | grep branch | cut -d" " -f3 | cut -c2-)
   
-  echo "$time,$l_per,$l_abs,$b_per,$b_abs" >> $covfile
+  # Extract state coverage from the file
+  states_abs=$(strings "$f" | grep -oP '(?<=# State Coverage: )\d+')
+  states_abs=${states_abs:-0}  # Default to 0 if not found
+
+  # Extract fuzzed seeds from the file
+  fuzzed_seeds=$(strings "$f" | grep -oP '(?<=# Fuzzed Seeds: )\d+')
+  fuzzed_seeds=${fuzzed_seeds:-0}  # Default to 0 if not found
+
+  # Log the coverage data along with state coverage and fuzzed seeds
+  echo "$time,$l_per,$l_abs,$b_per,$b_abs,$states_abs,$fuzzed_seeds" >> $covfile
 fi
