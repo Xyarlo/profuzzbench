@@ -33,17 +33,33 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
                     coverage_values = []
 
                     for run in range(1, runs + 1):
-                        # Get data for this specific run
-                        df2 = df1[df1['run'] == run]
-                        
-                        # Get the starting time for this run
-                        start = df2.iloc[0, 0]
-                        
-                        # Filter rows up to the cutoff time for this run
-                        df3 = df2[df2['time'] <= start + time * 60]
-                        
-                        # Append the last coverage value within this timeframe
-                        coverage_values.append(df3.tail(1).iloc[0, 5])
+                        try:
+                            # Get data for this specific run
+                            df2 = df1[df1['run'] == run]
+        
+                            # Check if there are no rows for this run
+                            if df2.empty:
+                                print(f"Warning: No data found for run {run} of fuzzer '{fuzzer}' with coverage type '{cov_type}'. Skipping this run.")
+                                continue
+        
+                            # Get the starting time for this run
+                            start = df2.iloc[0, 0]
+        
+                            # Filter rows up to the cutoff time for this run
+                            df3 = df2[df2['time'] <= start + time * 60]
+        
+                            # Ensure that there is at least one row of data after filtering
+                            if df3.empty:
+                                print(f"Warning: No valid data for run {run} within cutoff time {time} minutes. Skipping this run.")
+                                continue
+        
+                            # Append the last coverage value within this timeframe
+                            coverage_values.append(df3.tail(1).iloc[0, 5])
+    
+                        except FileNotFoundError as e:
+                            print(f"Warning: Missing file for run {run} of fuzzer '{fuzzer}' with coverage type '{cov_type}'. Skipping this run.")
+                        except Exception as e:
+                            print(f"Error processing run {run}: {e}. Skipping this run.")
 
                     # Calculate mean and standard deviation for this time interval
                     mean_cov = pd.Series(coverage_values).mean()
