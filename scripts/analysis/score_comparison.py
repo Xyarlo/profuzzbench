@@ -45,7 +45,7 @@ def main(put, output_folder):
     # Process other sets and merge averaged scores
     for label in sets:
         print(f"Processing {label}...")
-        set_data = extract_code_scores(output_folder, f"out-{label}", ['code2', 'score'])
+        set_data = extract_code_scores(output_folder, f"out-{put}-{label}_", ['code2', 'score'])
 
         if set_data is None:
             print(f"Set {label} not found.")
