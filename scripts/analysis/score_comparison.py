@@ -29,6 +29,10 @@ def extract_code_scores(output_dir, name_prefix, columns):
 
     combined_data = pd.concat(data_frames)
 
+    # If 'id' exists, group by 'id' and average the scores
+    if 'id' in combined_data.columns:
+        combined_data = combined_data.groupby('id', as_index=False)['score'].mean()
+
     # If 'code2' exists, group by 'code2' and average the scores
     if 'code2' in combined_data.columns:
         combined_data = combined_data.groupby('code2', as_index=False)['score'].mean()
