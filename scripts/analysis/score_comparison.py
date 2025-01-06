@@ -13,15 +13,19 @@ def extract_code_scores(output_dir, name_prefix, columns):
             with tarfile.open(file_name, "r:gz") as tar:
                 # Look for 'state_stats.csv' in the archive
                 member = next(member for member in tar.getmembers() if member.name.endswith("state_stats.csv"))
-                tar.extract(member, output_dir)
-                extracted_csv_path = os.path.join(output_dir, member.name)
+                if member:
+                    tar.extract(member, output_dir)
+                    extracted_csv_path = os.path.join(output_dir, member.name)
 
-                # Read the CSV and extract specific columns
-                data = pd.read_csv(extracted_csv_path)[columns]
-                data_frames.append(data)
+                    # Read the CSV and extract specific columns
+                    data = pd.read_csv(extracted_csv_path)[columns]
+                    data_frames.append(data)
 
-                # Clean up the extracted file
-                os.remove(extracted_csv_path)
+                    # Clean up the extracted file
+                    os.remove(extracted_csv_path)
+
+    if not data_frames:
+        return None  # No matching files found
 
     combined_data = pd.concat(data_frames)
 
@@ -35,7 +39,7 @@ def extract_code_scores(output_dir, name_prefix, columns):
 def main(put, output_folder):
     os.makedirs(output_folder, exist_ok=True)
     
-    sets = ['aflnet-tuples', 'tuples-delayed']
+    sets = ['aflnet', 'aflnet-tuples', 'tuples-delayed', 'tuples-random']
 
     # Extract data for aflnet
     print("Processing aflnet...")
@@ -46,10 +50,15 @@ def main(put, output_folder):
     result = aflnet_data
 
     # Process other sets and merge averaged scores
-    for set_name in sets:
-        print(f"Processing {set_name}...")
-        set_data = extract_code_scores(output_folder, f"out-{set_name}", ['code2', 'score'])
-        set_data.rename(columns={'code2': 'code', 'score': set_name}, inplace=True)
+    for label in sets:
+        print(f"Processing {label}...")
+        set_data = extract_code_scores(output_folder, f"out-{label}", ['code2', 'score'])
+
+        if set_data is None:
+            print(f"Set {label} not found.")
+            continue
+
+        set_data.rename(columns={'code2': 'code', 'score': label}, inplace=True)
         result = pd.merge(result, set_data, on='code', how='outer')
 
     # Fill missing values with 'n/a'
