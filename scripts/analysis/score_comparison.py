@@ -37,17 +37,10 @@ def extract_code_scores(output_dir, name_prefix, columns):
 
 
 def main(put, output_folder):
+
     os.makedirs(output_folder, exist_ok=True)
     
     sets = ['aflnet', 'aflnet-tuples', 'tuples-delayed', 'tuples-random']
-
-    # Extract data for aflnet
-    print("Processing aflnet...")
-    aflnet_data = extract_code_scores(output_folder, "out-aflnet", ['id', 'score'])
-    aflnet_data.rename(columns={'id': 'code', 'score': 'aflnet'}, inplace=True)
-
-    # Initialize the result DataFrame with aflnet data
-    result = aflnet_data
 
     # Process other sets and merge averaged scores
     for label in sets:
