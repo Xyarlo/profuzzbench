@@ -58,7 +58,7 @@ def plot_scores(csv_file, output_folder):
 
     data.fillna(0, inplace=True)  # Replace NaN with 0 for plotting purposes
     data['average'] = data[numeric_columns].mean(axis=1)  # Calculate the average of all numeric columns
-    data = data.sort_values(by='average')  # Sort by the average score
+    data = data.sort_values(by='code')  # Sort by the 'code' column in ascending order
 
     # Plot the data
     plt.figure(figsize=(15, 8))
