@@ -31,11 +31,11 @@ def extract_code_scores(output_dir, name_prefix, columns):
 
     # If 'id' exists, group by 'id' and average the scores
     if 'id' in combined_data.columns:
-        combined_data = combined_data.groupby('id', as_index=False)['score'].mean()
+        combined_data = combined_data.groupby('id', as_index=False)['score'].mean().round(0)
 
     # If 'code2' exists, group by 'code2' and average the scores
     if 'code2' in combined_data.columns:
-        combined_data = combined_data.groupby('code2', as_index=False)['score'].mean()
+        combined_data = combined_data.groupby('code2', as_index=False)['score'].mean().round(0)
 
     return combined_data
 
@@ -70,7 +70,7 @@ def main(put, output_folder):
     result.fillna('n/a', inplace=True)
 
     # Save the result to a new CSV file
-    output_file = os.path.join(output_folder, "score_comparison.csv")
+    output_file = os.path.join(output_folder, "average_scores.csv")
     result.to_csv(output_file, index=False)
     print(f"Results saved to {output_file}")
 
