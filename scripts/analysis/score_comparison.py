@@ -44,7 +44,7 @@ def main(put, output_folder):
 
     # Extract data for aflnet
     print("Processing aflnet...")
-    aflnet_data = extract_code_scores(output_folder, f"out-{put}-aflnet", ['id', 'score'])
+    aflnet_data = extract_code_scores(output_folder, f"out-{put}-aflnet_", ['id', 'score'])
     aflnet_data.rename(columns={'id': 'code', 'score': 'aflnet'}, inplace=True)
 
     # Initialize the result DataFrame with aflnet data
