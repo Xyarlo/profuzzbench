@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def extract_code_scores(output_dir, name_prefix, columns):
+def extract_code_scores(output_dir, name_prefix, columns, variable):
     data_frames = []
     for file_name in sorted(os.listdir(".")):
         if file_name.startswith(name_prefix) and file_name.endswith(".tar.gz"):
@@ -32,11 +32,11 @@ def extract_code_scores(output_dir, name_prefix, columns):
 
     # If 'id' exists, group by 'id' and average the scores
     if 'id' in combined_data.columns:
-        combined_data = combined_data.groupby('id', as_index=False)['score'].mean().round(0)
+        combined_data = combined_data.groupby('id', as_index=False)[variable].mean().round(0)
 
     # If 'code2' exists, group by 'code2' and average the scores
     if 'code2' in combined_data.columns:
-        combined_data = combined_data.groupby('code2', as_index=False)['score'].mean().round(0)
+        combined_data = combined_data.groupby('code2', as_index=False)[variable].mean().round(0)
 
     return combined_data
 
@@ -86,13 +86,13 @@ def main(put, output_folder):
     os.makedirs(output_folder, exist_ok=True)
     
     sets = ['aflnet-tuples', 'tuples-delayed', 'tuples-random']
-    variables = ['selected_times', 'fuzzs', 'paths_discovered']
+    variables = ['score', 'selected_times', 'fuzzs', 'paths_discovered']
 
 
     for variable in variables:
         # Extract data for aflnet
         print("Processing aflnet...")
-        aflnet_data = extract_code_scores(output_folder, f"out-{put}-aflnet_", ['id', variable])
+        aflnet_data = extract_code_scores(output_folder, f"out-{put}-aflnet_", ['id', variable], variable)
         aflnet_data.rename(columns={'id': 'code', variable: 'aflnet'}, inplace=True)
 
         # Initialize the result DataFrame with aflnet data
@@ -101,7 +101,7 @@ def main(put, output_folder):
         # Process other sets and merge averaged scores
         for label in sets:
             print(f"Processing {label}...")
-            set_data = extract_code_scores(output_folder, f"out-{put}-{label}_", ['code2', variable])
+            set_data = extract_code_scores(output_folder, f"out-{put}-{label}_", ['code2', variable], variable)
 
             if set_data is None:
                 print(f"Set {label} not found.")
