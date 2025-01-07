@@ -8,6 +8,17 @@ import matplotlib.pyplot as plt
 
 
 def extract_code_scores(output_dir, name_prefix, columns, variable):
+    """
+    Extracts specific columns from 'state_stats.csv' in tar.gz files.
+    Accumulates values within each file and averages across files for the given variable.
+    Args:
+        output_dir (str): Directory where extracted files are temporarily saved.
+        name_prefix (str): Prefix of the tar.gz files to process (e.g., "out-aflnet-").
+        columns (list): List of columns to extract (e.g., ['code2', 'score']).
+        variable (str): The variable to process (e.g., 'score', 'selected_times').
+    Returns:
+        DataFrame: A DataFrame containing accumulated and averaged values for the variable.
+    """
     data_frames = []
     for file_name in sorted(os.listdir(".")):
         if file_name.startswith(name_prefix) and file_name.endswith(".tar.gz"):
@@ -20,6 +31,16 @@ def extract_code_scores(output_dir, name_prefix, columns, variable):
 
                     # Read the CSV and extract specific columns
                     data = pd.read_csv(extracted_csv_path)[columns]
+                    
+                    # Group by code2 or id, depending on the column
+                    group_column = 'id' if 'id' in data.columns else 'code2'
+                    if variable == 'score':
+                        # Average scores directly
+                        data = data.groupby(group_column, as_index=False)[variable].mean()
+                    else:
+                        # Accumulate values within each file
+                        data = data.groupby(group_column, as_index=False)[variable].sum()
+
                     data_frames.append(data)
 
                     # Clean up the extracted file
@@ -28,15 +49,10 @@ def extract_code_scores(output_dir, name_prefix, columns, variable):
     if not data_frames:
         return None  # No matching files found
 
+    # Combine data from all files and average across files
     combined_data = pd.concat(data_frames)
-
-    # If 'id' exists, group by 'id' and average the scores
-    if 'id' in combined_data.columns:
-        combined_data = combined_data.groupby('id', as_index=False)[variable].mean().round(0)
-
-    # If 'code2' exists, group by 'code2' and average the scores
-    if 'code2' in combined_data.columns:
-        combined_data = combined_data.groupby('code2', as_index=False)[variable].mean().round(0)
+    group_column = 'id' if 'id' in combined_data.columns else 'code2'
+    combined_data = combined_data.groupby(group_column, as_index=False)[variable].mean().round(0)
 
     return combined_data
 
