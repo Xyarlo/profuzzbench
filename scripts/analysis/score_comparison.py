@@ -41,7 +41,7 @@ def extract_code_scores(output_dir, name_prefix, columns):
     return combined_data
 
 
-def plot_scores(csv_file, output_folder):
+def plot_scores(csv_file, output_folder, variable):
     """
     Reads the resulting CSV, sorts the data, and creates a bar chart.
     Args:
@@ -70,13 +70,13 @@ def plot_scores(csv_file, output_folder):
 
     plt.xticks([p + bar_width for p in x], data['code'], rotation=90)
     plt.xlabel('Code', fontsize=12)
-    plt.ylabel('Scores', fontsize=12)
-    plt.title('Comparison of Scores Across Sets', fontsize=16)
+    plt.ylabel(f'avg_{variable}', fontsize=12)
+    plt.title(f'Comparison of {variable} Across Sets', fontsize=16)
     plt.legend()
     plt.tight_layout()
 
     # Save the bar chart
-    chart_file = os.path.join(output_folder, "score_comparison_chart.png")
+    chart_file = os.path.join(output_folder, f"{variable}_comparison_chart.png")
     plt.savefig(chart_file)
     plt.show()
     print(f"Bar chart saved to {chart_file}")
@@ -86,37 +86,40 @@ def main(put, output_folder):
     os.makedirs(output_folder, exist_ok=True)
     
     sets = ['aflnet-tuples', 'tuples-delayed', 'tuples-random']
+    variables = ['selected_times', 'fuzzs', 'paths_discovered']
 
-    # Extract data for aflnet
-    print("Processing aflnet...")
-    aflnet_data = extract_code_scores(output_folder, f"out-{put}-aflnet_", ['id', 'score'])
-    aflnet_data.rename(columns={'id': 'code', 'score': 'aflnet'}, inplace=True)
 
-    # Initialize the result DataFrame with aflnet data
-    result = aflnet_data
+    for variable in variables:
+        # Extract data for aflnet
+        print("Processing aflnet...")
+        aflnet_data = extract_code_scores(output_folder, f"out-{put}-aflnet_", ['id', variable])
+        aflnet_data.rename(columns={'id': 'code', variable: 'aflnet'}, inplace=True)
 
-    # Process other sets and merge averaged scores
-    for label in sets:
-        print(f"Processing {label}...")
-        set_data = extract_code_scores(output_folder, f"out-{put}-{label}_", ['code2', 'score'])
+        # Initialize the result DataFrame with aflnet data
+        result = aflnet_data
 
-        if set_data is None:
-            print(f"Set {label} not found.")
-            continue
+        # Process other sets and merge averaged scores
+        for label in sets:
+            print(f"Processing {label}...")
+            set_data = extract_code_scores(output_folder, f"out-{put}-{label}_", ['code2', variable])
 
-        set_data.rename(columns={'code2': 'code', 'score': label}, inplace=True)
-        result = pd.merge(result, set_data, on='code', how='outer')
+            if set_data is None:
+                print(f"Set {label} not found.")
+                continue
 
-    # Fill missing values with 'n/a'
-    result.fillna('n/a', inplace=True)
+            set_data.rename(columns={'code2': 'code', variable: label}, inplace=True)
+            result = pd.merge(result, set_data, on='code', how='outer')
 
-    # Save the result to a new CSV file
-    output_file = os.path.join(output_folder, "average_scores.csv")
-    result.to_csv(output_file, index=False)
-    print(f"Results saved to {output_file}")
+        # Fill missing values with 'n/a'
+        result.fillna('n/a', inplace=True)
 
-    # Create a bar chart from the resulting CSV
-    plot_scores(output_file, output_folder)
+        # Save the result to a new CSV file
+        output_file = os.path.join(output_folder, f"average_{variable}.csv")
+        result.to_csv(output_file, index=False)
+        print(f"Results saved to {output_file}")
+
+        # Create a bar chart from the resulting CSV
+        plot_scores(output_file, output_folder, variable)
 
 
 # Parse the input arguments
