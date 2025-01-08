@@ -68,6 +68,14 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
         ax = axes[i]
         cov_type_df = df[df['cov_type'] == cov_type]
 
+        if cov_type_df.empty:
+            print(f"Warning: No data for coverage type {cov_type}. Skipping plot.")
+            continue
+
+        if not {'time', 'mean_cov', 'std_dev_cov', 'fuzzer'}.issubset(cov_type_df.columns):
+            print(f"Warning: Required columns are missing for coverage type {cov_type}. Skipping plot.")
+            continue
+
         for fuzzer, fuzzer_df in cov_type_df.groupby('fuzzer'):
             if fuzzer_df.empty:
                 print(f"Warning: No data found for fuzzer {fuzzer} and coverage type {cov_type}. Skipping.")
@@ -88,10 +96,6 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
                     linestyle="--",
                     label=f"{fuzzer} phase_two_start",
                 )
-
-        if cov_type_df.empty:
-            print(f"Warning: No data for coverage type {cov_type}. Skipping plot.")
-            continue
 
         ax.set_xlabel("Time (minutes)")
         ax.set_ylabel("Coverage")
