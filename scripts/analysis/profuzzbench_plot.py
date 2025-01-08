@@ -69,6 +69,10 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
         cov_type_df = df[df['cov_type'] == cov_type]
 
         for fuzzer, fuzzer_df in cov_type_df.groupby('fuzzer'):
+            if fuzzer_df.empty:
+                print(f"Warning: No data found for fuzzer {fuzzer} and coverage type {cov_type}. Skipping.")
+                continue
+
             ax.plot(fuzzer_df['time'], fuzzer_df['mean_cov'], label=f"{fuzzer}")
             ax.fill_between(
                 fuzzer_df['time'],
@@ -84,6 +88,10 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
                     linestyle="--",
                     label=f"{fuzzer} phase_two_start",
                 )
+
+        if cov_type_df.empty:
+            print(f"Warning: No data for coverage type {cov_type}. Skipping plot.")
+            continue
 
         ax.set_xlabel("Time (minutes)")
         ax.set_ylabel("Coverage")
