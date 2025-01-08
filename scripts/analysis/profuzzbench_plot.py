@@ -19,17 +19,17 @@ def calculate_phase_two_average(target, fuzzer, runs):
             continue
 
         try:
-            with tarfile.open(file_path, "r:gz") as tar:
+            with tarfile.open(file_name, "r:gz") as tar:
                 fuzzer_stats_file = [
                     member for member in tar.getmembers() if "fuzzer_stats" in member.name
                 ]
                 if not fuzzer_stats_file:
-                    print(f"Warning: No fuzzer_stats found in {file_path}")
+                    print(f"Warning: No fuzzer_stats found in {file_name}")
                     return
 
                 fuzzer_stats = tar.extractfile(fuzzer_stats_file[0])
                 if fuzzer_stats is None:
-                    print(f"Warning: Unable to extract fuzzer_stats from {file_path}")
+                    print(f"Warning: Unable to extract fuzzer_stats from {file_name}")
                     return
 
                 for line in fuzzer_stats:
@@ -37,7 +37,7 @@ def calculate_phase_two_average(target, fuzzer, runs):
                     if decoded_line.startswith("phase_two_start"):
                         phase_two_values.append(int(decoded_line.split(":")[1].strip()))
         except Exception as e:
-            print(f"Error processing {file_path}: {e}")
+            print(f"Error processing {file_name}: {e}")
         return
 
     if not phase_two_values:
