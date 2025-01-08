@@ -48,8 +48,14 @@ def calculate_average_phase_two(target, fuzzer):
 def main(csv_file, put, runs, cut_off, step, output_folder):
     os.makedirs(output_folder, exist_ok=True)
     out_file = os.path.join(output_folder, "cov_over_time_with_phase_two.png")
+    out_file_stats = os.path.join(output_folder, "stats_over_time.png")
 
     df = pd.read_csv(csv_file)
+
+    if df.empty:
+        print("Error: The input CSV file is empty or invalid.")
+        return
+
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
     axes = axes.flatten()
     fig.suptitle(f"Code Coverage Over Time for {put}", fontsize=16)
@@ -104,6 +110,41 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
 
     plt.tight_layout()
     plt.savefig(out_file)
+
+    # Additional Plot for stats_over_time.png
+    fig_stats, axes_stats = plt.subplots(1, 2, figsize=(15, 5))
+    metrics = ['states_abs', 'fuzzed_seeds']
+    titles = ["Discovered States", "Total Fuzzed Seeds"]
+
+    for i, (metric, title) in enumerate(zip(metrics, titles)):
+        ax = axes_stats[i]
+        metric_df = df[df['cov_type'] == metric]
+
+        if metric_df.empty:
+            print(f"Warning: No data for metric {metric}. Skipping plot.")
+            continue
+
+        for fuzzer, fuzzer_df in metric_df.groupby('fuzzer'):
+            if fuzzer_df.empty:
+                print(f"Warning: No data found for fuzzer {fuzzer} and metric {metric}. Skipping.")
+                continue
+
+            ax.plot(fuzzer_df['time'], fuzzer_df['mean_cov'], label=f"{fuzzer}")
+            ax.fill_between(
+                fuzzer_df['time'],
+                fuzzer_df['mean_cov'] - fuzzer_df['std_dev_cov'],
+                fuzzer_df['mean_cov'] + fuzzer_df['std_dev_cov'],
+                alpha=0.3,
+            )
+
+        ax.set_title(title)
+        ax.set_xlabel("Time (minutes)")
+        ax.set_ylabel(metric.replace("_", " ").capitalize())
+        ax.legend(loc="upper left")
+        ax.grid(True)
+
+    plt.tight_layout()
+    plt.savefig(out_file_stats)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
