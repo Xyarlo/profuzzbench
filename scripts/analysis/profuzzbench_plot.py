@@ -100,7 +100,7 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
     # Calculate mean and standard deviation for each time interval
     for subject in [put]:
         for fuzzer in ['aflnet', 'aflnet-tuples', 'tuples-random', "tuples-delayed"]:
-            # calculate_phase_two_average(subject, fuzzer, runs)
+            calculate_phase_two_average(subject, fuzzer, runs)
             for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per', 'states_abs', 'fuzzed_seeds']:
                 # Get subject, fuzzer, and cov_type-specific DataFrame
                 df1 = df[(df['subject'] == subject) & 
@@ -116,7 +116,6 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
         
                             # Check if there are no rows for this run
                             if df2.empty:
-                                print(f"Warning: No data found for run {run} of fuzzer '{fuzzer}' with coverage type '{cov_type}'. Skipping this run.")
                                 continue
         
                             # Get the starting time for this run
@@ -127,7 +126,6 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
         
                             # Ensure that there is at least one row of data after filtering
                             if df3.empty:
-                                print(f"Warning: No valid data for run {run} within cutoff time {time} minutes. Skipping this run.")
                                 continue
         
                             # Append the last coverage value within this timeframe
