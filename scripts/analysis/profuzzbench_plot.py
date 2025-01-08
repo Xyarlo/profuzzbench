@@ -21,22 +21,23 @@ def calculate_phase_two_average(target, fuzzer, runs):
 
         try:
             with tarfile.open(file_name, "r:gz") as tar:
-                fuzzer_stats_file = [
-                    member for member in tar.getmembers() if "fuzzer_stats" in member.name
-                ]
-                if not fuzzer_stats_file:
+                member = next(member for member in tar.getmembers() if "fuzzer_stats" in member.name)
+                if not member:
                     print(f"Warning: No fuzzer_stats found in {file_name}")
                     return
 
-                fuzzer_stats = tar.extractfile(fuzzer_stats_file[0])
+                fuzzer_stats = tar.extractfile(member)
                 if fuzzer_stats is None:
                     print(f"Warning: Unable to extract fuzzer_stats from {file_name}")
                     return
 
                 for line in fuzzer_stats:
+                    print("Searching for relevant line...")
                     decoded_line = line.decode("utf-8").strip()
                     if decoded_line.startswith("phase_two_start"):
-                        phase_two_values.append(int(decoded_line.split(":")[1].strip()))
+                        phase_two_start = int(decoded_line.split(":")[1].strip())
+                        print(f"Fuzzer: {fuzzer}, Container: {index}, Round-Robin ends at {phase_two_start}")
+                        phase_two_values.append(phase_two_start)
         except Exception as e:
             print(f"Error processing {file_name}: {e}")
         return
