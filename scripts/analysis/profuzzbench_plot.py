@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import tarfile
 from pandas import read_csv
 from pandas import DataFrame
 from matplotlib import pyplot as plt
