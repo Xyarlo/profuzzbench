@@ -133,13 +133,18 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
         
         # Plot mean coverage with shaded standard deviation
         for fuzzer, fuzzer_df in cov_type_df.groupby('fuzzer'):
+            if fuzzer_df.empty:
+                continue
+
             line, = ax.plot(fuzzer_df['time'], fuzzer_df['mean_cov'], label=f"{fuzzer}")
             ax.fill_between(fuzzer_df['time'],
                             fuzzer_df['mean_cov'] - fuzzer_df['std_dev_cov'],
                             fuzzer_df['mean_cov'] + fuzzer_df['std_dev_cov'],
                             alpha=0.3)  # Adjust alpha for transparency of shaded area
+
             if phase_two_values[fuzzer] is not None:
                 ax.axvline(x=phase_two_values[fuzzer], color=line.get_color(), linestyle='--', label=f"{fuzzer} round-robin end", alpha=0.5)
+
         # Set titles and labels for each subplot
         ax.set_xlabel("Time (minutes)")
         match cov_type:
@@ -153,7 +158,7 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
                 ax.set_ylabel("% lines")
             case _:
                 ax.set_ylabel("unknown")
-        ax.legend(loc='upper left')
+        ax.legend(loc='lower right')
         ax.grid(True)
     # Adjust layout to prevent overlap and save the figure
     plt.tight_layout()
@@ -188,7 +193,7 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
                 ax.set_ylabel("% fuzzed seeds")
             case _:
                 ax.set_ylabel("unknown")
-        ax.legend(loc='upper left')
+        ax.legend(loc='lower right')
         ax.grid(True)
 
     plt.tight_layout()
