@@ -38,7 +38,7 @@ def calculate_phase_two_average(target, fuzzer, runs):
                         phase_two_start = int(decoded_line.split(":")[1].strip())
                         print(f"Fuzzer: {fuzzer}, Container: {index}, Round-Robin ends at {phase_two_start}")
                         phase_two_values.append(phase_two_start)
-                        continue
+                        break
         except Exception as e:
             print(f"Error processing {file_name}: {e}")
         continue
@@ -50,41 +50,6 @@ def calculate_phase_two_average(target, fuzzer, runs):
     avg_phase_two_start = mean(phase_two_values)
     print(f"Fuzzer: {fuzzer}, Average phase_two_start: {avg_phase_two_start}")
     return avg_phase_two_start
-
-
-
-    """
-    # Initialize a dictionary to store phase_two_start values for each fuzzer
-    phase_two_values = []
-
-    # Iterate through files in the current directory
-    for file_name in sorted(os.listdir(".")):
-        if file_name.startswith(name_prefix) and file_name.endswith(".tar.gz"):
-            try:
-                # Open the .tar.gz file
-                with tarfile.open(file_name, "r:gz") as tar:
-                    # Extract fuzzer_stats file
-                    fuzzer_stats_file = tar.extractfile("fuzzer_stats")
-                    if fuzzer_stats_file:
-                        # Read the content of the fuzzer_stats file
-                        content = fuzzer_stats_file.read().decode('utf-8')
-
-                        # Search for the phase_two_start line
-                        match = re.search(r"phase_two_start\s+:\s+(\d+)", content)
-                        if match:
-                            phase_two_start = int(match.group(1))
-                            # Append the value to the fuzzer's list
-                            phase_two_values.append(phase_two_start)
-            except (FileNotFoundError, tarfile.TarError) as e:
-                print(f"Warning: Could not process file {file_name}: {e}")
-
-    if not phase_two_values:
-        print(f"Fuzzer: {fuzzer}, No valid phase_two_start values found.")
-        return None  # No matching files found
-
-    avg_phase_two_start = mean(values)
-    print(f"Fuzzer: {fuzzer}, Average phase_two_start: {avg_phase_two_start}")
-    """
 
 
 def main(csv_file, put, runs, cut_off, step, output_folder):
@@ -104,7 +69,6 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
     # Calculate mean and standard deviation for each time interval
     for subject in [put]:
         for fuzzer in ['aflnet', 'aflnet-tuples', 'tuples-random', "tuples-delayed"]:
-            calculate_phase_two_average(subject, fuzzer, runs)
             for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per', 'states_abs', 'fuzzed_seeds']:
                 # Get subject, fuzzer, and cov_type-specific DataFrame
                 df1 = df[(df['subject'] == subject) & 
@@ -167,11 +131,13 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
         
         # Plot mean coverage with shaded standard deviation
         for fuzzer, fuzzer_df in cov_type_df.groupby('fuzzer'):
-            ax.plot(fuzzer_df['time'], fuzzer_df['mean_cov'], label=f"{fuzzer}")
+            line, = ax.plot(fuzzer_df['time'], fuzzer_df['mean_cov'], label=f"{fuzzer}")
             ax.fill_between(fuzzer_df['time'],
                             fuzzer_df['mean_cov'] - fuzzer_df['std_dev_cov'],
                             fuzzer_df['mean_cov'] + fuzzer_df['std_dev_cov'],
                             alpha=0.3)  # Adjust alpha for transparency of shaded area
+            phase_two_start = calculate_phase_two_average(put, fuzzer, runs)
+            ax.axvline(x=phase_two_start, color=line.get_color(), linestyle='--', label=f"{fuzzer} round-robin end", alpha=0.8)
         # Set titles and labels for each subplot
         ax.set_xlabel("Time (minutes)")
         match cov_type:
