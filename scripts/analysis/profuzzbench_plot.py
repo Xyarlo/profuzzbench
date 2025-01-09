@@ -65,10 +65,12 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
     # Lists to store calculated mean and standard deviation data
     mean_list = []
     std_dev_list = []
+    phase_two_values = {}
 
     # Calculate mean and standard deviation for each time interval
     for subject in [put]:
         for fuzzer in ['aflnet', 'aflnet-tuples', 'tuples-random', "tuples-delayed"]:
+            phase_two_values[fuzzer] = calculate_phase_two_average(put, fuzzer, runs)
             for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per', 'states_abs', 'fuzzed_seeds']:
                 # Get subject, fuzzer, and cov_type-specific DataFrame
                 df1 = df[(df['subject'] == subject) & 
@@ -136,9 +138,8 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
                             fuzzer_df['mean_cov'] - fuzzer_df['std_dev_cov'],
                             fuzzer_df['mean_cov'] + fuzzer_df['std_dev_cov'],
                             alpha=0.3)  # Adjust alpha for transparency of shaded area
-            phase_two_start = calculate_phase_two_average(put, fuzzer, runs)
-            if phase_two_start is not None:
-                ax.axvline(x=phase_two_start, color=line.get_color(), linestyle='--', label=f"{fuzzer} round-robin end", alpha=0.8)
+            if phase_two_values[fuzzer] is not None:
+                ax.axvline(x=phase_two_values[fuzzer], color=line.get_color(), linestyle='--', label=f"{fuzzer} round-robin end", alpha=0.5)
         # Set titles and labels for each subplot
         ax.set_xlabel("Time (minutes)")
         match cov_type:
@@ -170,11 +171,13 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
         metric_df = merged_df[merged_df['cov_type'] == metric]
         
         for fuzzer, fuzzer_df in metric_df.groupby('fuzzer'):
-            ax.plot(fuzzer_df['time'], fuzzer_df['mean_cov'], label=f"{fuzzer}")
+            line, = ax.plot(fuzzer_df['time'], fuzzer_df['mean_cov'], label=f"{fuzzer}")
             ax.fill_between(fuzzer_df['time'],
                             fuzzer_df['mean_cov'] - fuzzer_df['std_dev_cov'],
                             fuzzer_df['mean_cov'] + fuzzer_df['std_dev_cov'],
                             alpha=0.3)
+            if phase_two_values[fuzzer] is not None:
+                ax.axvline(x=phase_two_values[fuzzer], color=line.get_color(), linestyle='--', label=f"{fuzzer} round-robin end", alpha=0.5)
 
         ax.set_title(f"{title} for {put}")
         ax.set_xlabel("Time (minutes)")
