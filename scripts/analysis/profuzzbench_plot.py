@@ -137,7 +137,8 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
                             fuzzer_df['mean_cov'] + fuzzer_df['std_dev_cov'],
                             alpha=0.3)  # Adjust alpha for transparency of shaded area
             phase_two_start = calculate_phase_two_average(put, fuzzer, runs)
-            ax.axvline(x=phase_two_start, color=line.get_color(), linestyle='--', label=f"{fuzzer} round-robin end", alpha=0.8)
+            if phase_two_start is not None:
+                ax.axvline(x=phase_two_start, color=line.get_color(), linestyle='--', label=f"{fuzzer} round-robin end", alpha=0.8)
         # Set titles and labels for each subplot
         ax.set_xlabel("Time (minutes)")
         match cov_type:
