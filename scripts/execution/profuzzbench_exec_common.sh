@@ -16,7 +16,30 @@ WORKDIR="/home/ubuntu/experiments"
 #keep all container ids
 cids=()
 
-#create one container for each run
+# Get git branch and latest commit ID for ProFuzzBench repository
+PROF_BRANCH=$(git -C "$(dirname "$0")" rev-parse --abbrev-ref HEAD)
+PROF_COMMIT=$(git -C "$(dirname "$0")" rev-parse HEAD)
+
+# Prepare to retrieve fuzzer repository information
+# The fuzzer's repository will be cloned inside the Docker container. We will retrieve the information by running a temporary container.
+FUZZER_INFO_FILE="${SAVETO}/${FUZZER}_info.txt"
+TEMP_CONTAINER=$(docker create $DOCIMAGE /bin/bash)
+docker start $TEMP_CONTAINER
+FUZZ_BRANCH=$(docker exec $TEMP_CONTAINER git -C "${WORKDIR}"/${FUZZER} rev-parse --abbrev-ref HEAD)
+FUZZ_COMMIT=$(docker exec $TEMP_CONTAINER git -C "${WORKDIR}"/${FUZZER} rev-parse HEAD)
+docker rm -f $TEMP_CONTAINER
+
+# Save the information to a file
+INFO_FILE="${SAVETO}/run_info.txt"
+echo "ProFuzzBench Repository:" > "$INFO_FILE"
+echo "Branch: $PROF_BRANCH" >> "$INFO_FILE"
+echo "Latest Commit: $PROF_COMMIT" >> "$INFO_FILE"
+echo "" >> "$INFO_FILE"
+echo "Fuzzer Repository:" >> "$INFO_FILE"
+echo "Branch: $FUZZ_BRANCH" >> "$INFO_FILE"
+echo "Latest Commit: $FUZZ_COMMIT" >> "$INFO_FILE"
+
+# Create one container for each run
 for i in $(seq 1 $RUNS); do
   id=$(docker run --cpus=1 -d -it $DOCIMAGE /bin/bash -c "cd ${WORKDIR} && run ${FUZZER} ${OUTDIR} '${OPTIONS}' ${TIMEOUT} ${SKIPCOUNT}")
   cids+=(${id::12}) #store only the first 12 characters of a container ID
