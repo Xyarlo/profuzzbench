@@ -56,7 +56,7 @@ def main(csv_file, put, output_folder):
 
     os.makedirs(output_folder, exist_ok=True)
 
-    set_labels = ["aflnet", "aflnet-tuples", "tuples-random", "tuples-delayed"]
+    set_labels = ["aflnet", "aflnet-tuples", "tuples-random", "tuples-delayed", "tuples-compensated"]
 
     for label in set_labels:
         print(f"Processing {label}...")

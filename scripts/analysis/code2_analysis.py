@@ -63,6 +63,7 @@ def main(csv_file, put, output_folder):
         {"label": "aflnet-tuples", "column": "code2"},
         {"label": "tuples-random", "column": "code2"},
         {"label": "tuples-delayed", "column": "code2"},
+        {"label": "tuples-compensated", "column": "code2"},
     ]
 
     counts_dicts = []

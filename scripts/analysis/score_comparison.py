@@ -101,7 +101,7 @@ def plot_scores(csv_file, output_folder, variable):
 def main(put, output_folder):
     os.makedirs(output_folder, exist_ok=True)
     
-    sets = ['aflnet-tuples', 'tuples-delayed', 'tuples-random']
+    sets = ['aflnet-tuples', 'tuples-delayed', 'tuples-random', "tuples-compensated"]
     variables = ['score', 'selected_times', 'fuzzs', 'paths_discovered']
 
 

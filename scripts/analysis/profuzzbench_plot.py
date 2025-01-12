@@ -69,7 +69,7 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
 
     # Calculate mean and standard deviation for each time interval
     for subject in [put]:
-        for fuzzer in ['aflnet', 'aflnet-tuples', 'tuples-random', "tuples-delayed"]:
+        for fuzzer in ['aflnet', 'aflnet-tuples', 'tuples-random', 'tuples-delayed', 'tuples-compensated']:
             phase_two_values[fuzzer] = calculate_phase_two_average(put, fuzzer, runs)
             for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per', 'states_abs', 'fuzzed_seeds']:
                 # Get subject, fuzzer, and cov_type-specific DataFrame
@@ -105,13 +105,14 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
                             print(f"Warning: Missing file for run {run} of fuzzer '{fuzzer}' with coverage type '{cov_type}'. Skipping this run.")
                         except Exception as e:
                             print(f"Error processing run {run}: {e}. Skipping this run.")
-                    # Calculate mean and standard deviation for this time interval
-                    mean_cov = pd.Series(coverage_values).mean()
-                    std_dev_cov = pd.Series(coverage_values).std()
-                    
-                    # Append results to lists
-                    mean_list.append((subject, fuzzer, cov_type, time, mean_cov))
-                    std_dev_list.append((subject, fuzzer, cov_type, time, std_dev_cov))
+                    # Calculate and append mean and standard deviation only if there are coverage values
+                    if coverage_values:  # Only proceed if there is valid data
+                        mean_cov = pd.Series(coverage_values).mean()
+                        std_dev_cov = pd.Series(coverage_values).std()
+
+                        # Append results to lists
+                        mean_list.append((subject, fuzzer, cov_type, time, mean_cov))
+                        std_dev_list.append((subject, fuzzer, cov_type, time, std_dev_cov))
     
     # Convert lists to DataFrames
     mean_df = pd.DataFrame(mean_list, columns=['subject', 'fuzzer', 'cov_type', 'time', 'mean_cov'])
@@ -176,6 +177,9 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
         metric_df = merged_df[merged_df['cov_type'] == metric]
         
         for fuzzer, fuzzer_df in metric_df.groupby('fuzzer'):
+            if fuzzer_df.empty:
+                continue
+
             line, = ax.plot(fuzzer_df['time'], fuzzer_df['mean_cov'], label=f"{fuzzer}")
             ax.fill_between(fuzzer_df['time'],
                             fuzzer_df['mean_cov'] - fuzzer_df['std_dev_cov'],
