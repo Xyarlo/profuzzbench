@@ -25,9 +25,14 @@ PROF_COMMIT=$(git -C "$(dirname "$0")" rev-parse HEAD)
 FUZZER_INFO_FILE="${SAVETO}/${FUZZER}_info.txt"
 TEMP_CONTAINER=$(docker create $DOCIMAGE /bin/bash)
 docker start $TEMP_CONTAINER
-FUZZ_BRANCH=$(docker exec $TEMP_CONTAINER git -C "${WORKDIR}"/${FUZZER} rev-parse --abbrev-ref HEAD)
-FUZZ_COMMIT=$(docker exec $TEMP_CONTAINER git -C "${WORKDIR}"/${FUZZER} rev-parse HEAD)
-docker rm -f $TEMP_CONTAINER
+
+# Ensure the container is running before retrieving git information
+FUZZ_BRANCH=$(docker exec $TEMP_CONTAINER bash -c "cd '${WORKDIR}/${FUZZER}' && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown'")
+FUZZ_COMMIT=$(docker exec $TEMP_CONTAINER bash -c "cd '${WORKDIR}/${FUZZER}' && git rev-parse HEAD 2>/dev/null || echo 'unknown'")
+
+# Stop and remove the temporary container after use
+docker stop $TEMP_CONTAINER > /dev/null
+docker rm -f $TEMP_CONTAINER > /dev/null
 
 # Save the information to a file
 INFO_FILE="${SAVETO}/run_info.txt"
