@@ -21,13 +21,15 @@ PROF_BRANCH=$(git -C "$(dirname "$0")" rev-parse --abbrev-ref HEAD)
 PROF_COMMIT=$(git -C "$(dirname "$0")" rev-parse HEAD)
 
 # Prepare to retrieve fuzzer repository information
-# The fuzzer's repository will be cloned inside the Docker container. We will retrieve the information by running a temporary container.
 TEMP_CONTAINER=$(docker create $DOCIMAGE /bin/bash)
 docker start $TEMP_CONTAINER
 
 # Ensure the container is running before retrieving git information
-FUZZ_BRANCH=$(docker exec $TEMP_CONTAINER bash -c "cd '/home/ubuntu/${FUZZER}' && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown'")
-FUZZ_COMMIT=$(docker exec $TEMP_CONTAINER bash -c "cd '/home/ubuntu/${FUZZER}' && git rev-parse HEAD 2>/dev/null || echo 'unknown'")
+FUZZER_REPO_PATH="/home/ubuntu/${FUZZER}"  # Update this path if the repository is located elsewhere
+
+# Log errors if git commands fail
+FUZZ_BRANCH=$(docker exec $TEMP_CONTAINER bash -c "if [ -d '${FUZZER_REPO_PATH}/.git' ]; then cd '${FUZZER_REPO_PATH}' && git rev-parse --abbrev-ref HEAD; else echo 'unknown'; fi" 2>&1)
+FUZZ_COMMIT=$(docker exec $TEMP_CONTAINER bash -c "if [ -d '${FUZZER_REPO_PATH}/.git' ]; then cd '${FUZZER_REPO_PATH}' && git rev-parse HEAD; else echo 'unknown'; fi" 2>&1)
 
 # Stop and remove the temporary container after use
 docker stop $TEMP_CONTAINER > /dev/null
@@ -35,13 +37,20 @@ docker rm -f $TEMP_CONTAINER > /dev/null
 
 # Save the information to a file
 INFO_FILE="${SAVETO}/${FUZZER}_info.txt"
-echo "ProFuzzBench Repository:" > "$INFO_FILE"
-echo "Branch: $PROF_BRANCH" >> "$INFO_FILE"
-echo "Latest Commit: $PROF_COMMIT" >> "$INFO_FILE"
-echo "" >> "$INFO_FILE"
-echo "Fuzzer Repository:" >> "$INFO_FILE"
-echo "Branch: $FUZZ_BRANCH" >> "$INFO_FILE"
-echo "Latest Commit: $FUZZ_COMMIT" >> "$INFO_FILE"
+{
+  echo "ProFuzzBench Repository:"
+  echo "Branch: $PROF_BRANCH"
+  echo "Latest Commit: $PROF_COMMIT"
+  echo ""
+  echo "Fuzzer Repository:"
+  echo "Branch: $FUZZ_BRANCH"
+  echo "Latest Commit: $FUZZ_COMMIT"
+} > "$INFO_FILE"
+
+# Log the output for debugging purposes
+echo "Debugging Information:"
+echo "Fuzzer Repository Branch: $FUZZ_BRANCH"
+echo "Fuzzer Repository Commit: $FUZZ_COMMIT"
 
 # Create one container for each run
 for i in $(seq 1 $RUNS); do
