@@ -22,7 +22,6 @@ PROF_COMMIT=$(git -C "$(dirname "$0")" rev-parse HEAD)
 
 # Prepare to retrieve fuzzer repository information
 # The fuzzer's repository will be cloned inside the Docker container. We will retrieve the information by running a temporary container.
-FUZZER_INFO_FILE="${SAVETO}/${FUZZER}_info.txt"
 TEMP_CONTAINER=$(docker create $DOCIMAGE /bin/bash)
 docker start $TEMP_CONTAINER
 
@@ -35,7 +34,7 @@ docker stop $TEMP_CONTAINER > /dev/null
 docker rm -f $TEMP_CONTAINER > /dev/null
 
 # Save the information to a file
-INFO_FILE="${SAVETO}/run_info.txt"
+INFO_FILE="${SAVETO}/${FUZZER}_info.txt"
 echo "ProFuzzBench Repository:" > "$INFO_FILE"
 echo "Branch: $PROF_BRANCH" >> "$INFO_FILE"
 echo "Latest Commit: $PROF_COMMIT" >> "$INFO_FILE"
