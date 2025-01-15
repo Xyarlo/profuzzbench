@@ -21,13 +21,12 @@ PROF_BRANCH=$(git -C "$(dirname "$0")" rev-parse --abbrev-ref HEAD)
 PROF_COMMIT=$(git -C "$(dirname "$0")" rev-parse HEAD)
 
 # Prepare to retrieve fuzzer repository information
-TEMP_CONTAINER=$(docker create $DOCIMAGE /bin/bash)
+TEMP_CONTAINER=$(docker create $DOCIMAGE /bin/bash -c "while true; do sleep 10; done")  # Keep the container running
 docker start $TEMP_CONTAINER
 
 # Ensure the container is running before retrieving git information
 FUZZER_REPO_PATH="/home/ubuntu/${FUZZER}"  # Update this path if the repository is located elsewhere
 
-# Log errors if git commands fail
 FUZZ_BRANCH=$(docker exec $TEMP_CONTAINER bash -c "if [ -d '${FUZZER_REPO_PATH}/.git' ]; then cd '${FUZZER_REPO_PATH}' && git rev-parse --abbrev-ref HEAD; else echo 'unknown'; fi" 2>&1)
 FUZZ_COMMIT=$(docker exec $TEMP_CONTAINER bash -c "if [ -d '${FUZZER_REPO_PATH}/.git' ]; then cd '${FUZZER_REPO_PATH}' && git rev-parse HEAD; else echo 'unknown'; fi" 2>&1)
 
