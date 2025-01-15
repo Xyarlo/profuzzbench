@@ -35,7 +35,7 @@ docker stop $TEMP_CONTAINER > /dev/null
 docker rm -f $TEMP_CONTAINER > /dev/null
 
 # Save the information to a file
-INFO_FILE="${SAVETO}/${DOCIMAGE}_info.txt"
+INFO_FILE="${SAVETO}/${OUTDIR#out-}_info.txt"
 {
   echo "ProFuzzBench Repository:"
   echo "Branch: $PROF_BRANCH"
