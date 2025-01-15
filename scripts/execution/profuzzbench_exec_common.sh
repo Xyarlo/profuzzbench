@@ -26,8 +26,8 @@ TEMP_CONTAINER=$(docker create $DOCIMAGE /bin/bash)
 docker start $TEMP_CONTAINER
 
 # Ensure the container is running before retrieving git information
-FUZZ_BRANCH=$(docker exec $TEMP_CONTAINER bash -c "cd '${WORKDIR}/${FUZZER}' && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown'")
-FUZZ_COMMIT=$(docker exec $TEMP_CONTAINER bash -c "cd '${WORKDIR}/${FUZZER}' && git rev-parse HEAD 2>/dev/null || echo 'unknown'")
+FUZZ_BRANCH=$(docker exec $TEMP_CONTAINER bash -c "cd '/home/ubuntu/${FUZZER}' && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown'")
+FUZZ_COMMIT=$(docker exec $TEMP_CONTAINER bash -c "cd '/home/ubuntu/${FUZZER}' && git rev-parse HEAD 2>/dev/null || echo 'unknown'")
 
 # Stop and remove the temporary container after use
 docker stop $TEMP_CONTAINER > /dev/null
