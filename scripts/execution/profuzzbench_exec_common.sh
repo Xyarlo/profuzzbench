@@ -27,6 +27,10 @@ docker start $TEMP_CONTAINER
 # Ensure the container is running before retrieving git information
 FUZZER_REPO_PATH="/home/ubuntu/${FUZZER}"  # Update this path if the repository is located elsewhere
 
+# Mark the fuzzer repository directory as safe
+docker exec $TEMP_CONTAINER bash -c "git config --global --add safe.directory '${FUZZER_REPO_PATH}'"
+
+# Retrieve Git information
 FUZZ_BRANCH=$(docker exec $TEMP_CONTAINER bash -c "if [ -d '${FUZZER_REPO_PATH}/.git' ]; then cd '${FUZZER_REPO_PATH}' && git rev-parse --abbrev-ref HEAD; else echo 'unknown'; fi" 2>&1)
 FUZZ_COMMIT=$(docker exec $TEMP_CONTAINER bash -c "if [ -d '${FUZZER_REPO_PATH}/.git' ]; then cd '${FUZZER_REPO_PATH}' && git rev-parse HEAD; else echo 'unknown'; fi" 2>&1)
 
