@@ -14,7 +14,7 @@ def extract_csvs(output_dir, name_prefix):
         if file_name.startswith(name_prefix) and file_name.endswith(".tar.gz"):
             with tarfile.open(file_name, "r:gz") as tar:
                 # Look for 'state_stats.csv' in the archive
-                member = next(member for member in tar.getmembers() if member.name.endswith("state_stats.csv"))
+                member = next((member for member in tar.getmembers() if member.name.endswith("state_stats.csv")), None)
                 if member:
                     tar.extract(member, output_dir)
                     extracted_csv_path = os.path.join(output_dir, member.name)
