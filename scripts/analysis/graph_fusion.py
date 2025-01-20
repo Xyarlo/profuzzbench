@@ -2,59 +2,97 @@
 
 import os
 import tarfile
-import networkx as nx
 import pydot
+from pathlib import Path
 
-input_folder = "."
-output_folder = "ipsm"
-os.makedirs(output_folder, exist_ok=True)
-
-def extract_and_merge_graphs(set_label):
+def extract_tar_to_unique_dir(tar_path, extract_to_base):
     """
-    Extracts and merges all ipsm.dot graphs from the .tar.gz files in the specified set.
+    Extract a .tar.gz file into a unique subdirectory of extract_to_base.
     """
-    graph = nx.DiGraph()  # Assuming directed graph; use nx.Graph() for undirected
+    unique_dir = Path(extract_to_base) / tar_path.stem  # Unique directory name
+    unique_dir.mkdir(parents=True, exist_ok=True)
     
-    for i in range(1, 9):
-        tar_filename = f"out-lightftp-{set_label}_{i}.tar.gz"
-        tar_path = os.path.join(input_folder, tar_filename)
-        
-        if not os.path.isfile(tar_path):
-            print(f"File {tar_path} not found!")
-            continue
-        
-        with tarfile.open(tar_path, "r:gz") as tar:
-            ipsm_file = [name for name in tar.getnames() if name.endswith("ipsm.dot")]
-            if not ipsm_file:
-                print(f"No ipsm.dot found in {tar_path}")
-                continue
-            
-            ipsm_file = ipsm_file[0]
-            with tar.extractfile(ipsm_file) as file:
-                if file:
-                    dot_data = file.read().decode('utf-8')
-                    
-                    pydot_graphs = pydot.graph_from_dot_data(dot_data)
-                    if pydot_graphs:
-                        temp_graph = nx.drawing.nx_pydot.from_pydot(pydot_graphs[0])
-                        
-                        # Debugging and validation
-                        print(f"temp_graph type: {type(temp_graph)}")
-                        print(f"temp_graph nodes: {temp_graph.nodes(data=True)}")
-                        print(f"temp_graph edges: {temp_graph.edges(data=True)}")
-                        
-                        if isinstance(temp_graph, (nx.Graph, nx.DiGraph, nx.MultiGraph, nx.MultiDiGraph)):
-                            print(f"Merging graph from {tar_path}...")
-                            graph = nx.compose(graph, temp_graph)
-                        else:
-                            print(f"Invalid graph object from {tar_path}. Type: {type(temp_graph)}")
-                    else:
-                        print(f"Failed to parse .dot data from {tar_path}")
-    
-    output_path = os.path.join(output_folder, f"ipsm-{set_label}.dot")
-    nx.drawing.nx_pydot.write_dot(graph, output_path)
-    print(f"Combined graph for set {set_label} written to {output_path}")
+    with tarfile.open(tar_path, "r:gz") as tar:
+        tar.extractall(unique_dir)  # Extract all files into the unique directory
+    return unique_dir
 
-set_labels = ["aflnet", "aflnet-tuples"]  # Replace with your actual set labels
-for set_label in set_labels:
-    extract_and_merge_graphs(set_label)
+
+def find_ipsm_dot_files(extracted_dir):
+    """
+    Find all `ipsm.dot` files in the extracted directory.
+    """
+    return list(Path(extracted_dir).rglob("ipsm.dot"))
+
+
+def merge_dot_graphs(dot_files, output_file):
+    """
+    Merge multiple .dot files into a single graph and save the result.
+    """
+    master_graph = pydot.Dot(graph_type='digraph', strict=True)
+    added_nodes = set()
+    added_edges = set()
+
+    print(f"Merging {len(dot_files)} files into {output_file}...")
+
+    for dot_file in dot_files:
+        try:
+            graphs = pydot.graph_from_dot_file(str(dot_file))
+            if graphs:
+                for graph in graphs:
+                    for node in graph.get_nodes():
+                        if node.get_name() not in added_nodes:
+                            master_graph.add_node(node)
+                            added_nodes.add(node.get_name())
+                    for edge in graph.get_edges():
+                        edge_tuple = (edge.get_source(), edge.get_destination())
+                        if edge_tuple not in added_edges:
+                            master_graph.add_edge(edge)
+                            added_edges.add(edge_tuple)
+        except Exception as e:
+            print(f"Error processing {dot_file}: {e}")
+
+    if master_graph.get_nodes():
+        master_graph.write_raw(output_file)
+        print(f"Merged graph saved to {output_file}")
+    else:
+        print(f"No valid graphs to merge for {output_file}")
+
+
+def process_tar_files_by_set(tar_files, output_dir):
+    """
+    Process tar.gz files grouped by set names and merge their graphs.
+    """
+    grouped_files = {}
+    for tar_file in tar_files:
+        set_name = tar_file.stem.split("-")[-1].split("_")[0]  # Extract the set name
+        grouped_files.setdefault(set_name, []).append(tar_file)
+
+    for set_name, files in grouped_files.items():
+        print(f"\nProcessing set: {set_name}")
+        extracted_dot_files = []
+
+        # Extract each .tar.gz into a unique directory
+        for tar_file in files:
+            extracted_dir = extract_tar_to_unique_dir(tar_file, output_dir)
+            ipsm_files = find_ipsm_dot_files(extracted_dir)
+            if ipsm_files:
+                extracted_dot_files.extend(ipsm_files)
+                print(f"Found {len(ipsm_files)} ipsm.dot file(s) in {tar_file}")
+            else:
+                print(f"No 'ipsm.dot' found in {tar_file}")
+
+        # Merge all the .dot files for this set
+        if extracted_dot_files:
+            merged_file_path = Path(output_dir) / f"merged_graph_{set_name}.dot"
+            merge_dot_graphs(extracted_dot_files, merged_file_path)
+        else:
+            print(f"No .dot files to merge for set: {set_name}")
+
+
+# Example Usage
+input_tar_dir = "."  # Directory containing .tar.gz files
+output_dir = "./merged_graphs"
+
+Path(output_dir).mkdir(parents=True, exist_ok=True)
+tar_files = list(Path(input_tar_dir).glob("*.tar.gz"))
+process_tar_files_by_set(tar_files, output_dir)
