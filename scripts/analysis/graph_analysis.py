@@ -43,6 +43,14 @@ def can_reach_any(graph, source_group, target_group):
                 return True
     return False
 
+def count_reaching_nodes(graph, source_group, target_group):
+    """Count how many nodes in source_group can reach any node in target_group."""
+    count = 0
+    for source in source_group:
+        if any(nx.has_path(graph, source, target) for target in target_group):
+            count += 1
+    return count
+
 def find_non_reaching_node(graph, source_group, target_group):
     """Find a node in source_group that cannot reach any node in target_group."""
     for source in source_group:
@@ -62,7 +70,9 @@ def analyze_graph(file_path):
     for source_code, source_group in groups.items():
         for target_code, target_group in groups.items():
             if source_code != target_code:
-                if can_reach_any(graph, source_group, target_group):
+                reaching_count = count_reaching_nodes(graph, source_group, target_group)
+                print(f"{reaching_count}/{len(source_group)} Nodes in Group {source_code} are able to reach Group {target_code}")
+                if reaching_count > 0:
                     non_reaching_node = find_non_reaching_node(graph, source_group, target_group)
                     if non_reaching_node:
                         node_tuple = graph.nodes[non_reaching_node]['tuple']
