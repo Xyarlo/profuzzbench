@@ -38,8 +38,11 @@ FUZZ_COMMIT=$(docker exec $TEMP_CONTAINER bash -c "if [ -d '${FUZZER_REPO_PATH}/
 docker stop $TEMP_CONTAINER > /dev/null
 docker rm -f $TEMP_CONTAINER > /dev/null
 
+NEW_FOLDER="${SAVETO}/evaluation"
+mkdir -p "$NEW_FOLDER"
+
 # Save the information to a file
-INFO_FILE="${SAVETO}/${OUTDIR#out-}_info.txt"
+INFO_FILE="${NEW_FOLDER}/${OUTDIR#out-}_info.txt"
 {
   echo "ProFuzzBench Repository:"
   echo "Branch: $PROF_BRANCH"
