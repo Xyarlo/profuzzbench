@@ -69,7 +69,7 @@ def main(csv_file, put, runs, cut_off, step, output_folder):
 
     # Calculate mean and standard deviation for each time interval
     for subject in [put]:
-        for fuzzer in ['aflnet', 'aflnet-tuples', 'tuples-random', 'tuples-delayed', 'tuples-compensated']:
+        for fuzzer in ['aflnet', 'aflnet-tuples', 'tuples-random', 'tuples-delayed', 'tuples-compensated', 'faster-havoc', 'no-penalty']:
             phase_two_values[fuzzer] = calculate_phase_two_average(put, fuzzer, runs)
             for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per', 'states_abs', 'fuzzed_seeds']:
                 # Get subject, fuzzer, and cov_type-specific DataFrame

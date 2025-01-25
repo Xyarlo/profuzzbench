@@ -64,6 +64,8 @@ def main(csv_file, put, output_folder):
         {"label": "tuples-random", "column": "code2"},
         {"label": "tuples-delayed", "column": "code2"},
         {"label": "tuples-compensated", "column": "code2"},
+        {"label": "faster-havoc", "column": "code2"},
+        {"label": "no-penalty", "column": "code2"},
     ]
 
     counts_dicts = []
