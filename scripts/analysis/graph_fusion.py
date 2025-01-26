@@ -95,10 +95,7 @@ def process_tar_files_by_set(tar_files, output_dir):
     # Clean up temporary extraction directories
     for temp_dir in temp_dirs:
         try:
-            shutil.rmtree(temp_dir)  # Remove the temporary directory
-            print(f"Cleaned up temporary directory: {temp_dir}")
-        except Exception as e:
-            print(f"Error cleaning up {temp_dir}: {e}")
+            shutil.rmtree(temp_dir)
 
 
 

@@ -50,7 +50,7 @@ def plot_boxplot(data_list, set_label, output_file):
     boxplot_data = [data['selected_times'] for data in data_list]
 
     # Create the horizontal boxplot
-    plt.boxplot(boxplot_data, labels=[f"Set {set_label}"], vert=False, patch_artist=True, 
+    plt.boxplot(boxplot_data, tick_labels=[f"Set {set_label}"], vert=False, patch_artist=True, 
                 boxprops=dict(facecolor='skyblue', color='black'))
     plt.xlabel("Selected Times (Averaged)", fontsize=12)
     plt.title(f"Boxplot of Selected Times by ID in {set_label}", fontsize=16)
