@@ -58,7 +58,7 @@ def plot_distributions(data_list, set_label, bin_size=500, title_fontsize=14, la
     plt.savefig(output_file)
 
 
-def main(csv_file, put, step, output_folder):
+def main(put, step, output_folder):
     os.makedirs(output_folder, exist_ok=True)
 
     set_labels = ["aflnet", "aflnet-tuples", "tuples-random", "tuples-delayed", "tuples-compensated", "faster-havoc", "no-penalty"]
@@ -80,10 +80,9 @@ def main(csv_file, put, step, output_folder):
 # Parse the input arguments
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()    
-    parser.add_argument('-i','--csv_file',type=str,required=True,help="Full path to results.csv")
     parser.add_argument('-p','--put',type=str,required=True,help="Name of the subject program")
     parser.add_argument('-s','--step',type=int,required=True,help="Score step")
     parser.add_argument('-o','--output_folder',type=str,required=True,help="Output folder")
 
     args = parser.parse_args()
-    main(args.csv_file, args.put, args.step, args.output_folder)
+    main(args.put, args.step, args.output_folder)

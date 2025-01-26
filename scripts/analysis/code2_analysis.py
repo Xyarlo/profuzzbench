@@ -54,7 +54,7 @@ def merge_counts(counts_dicts, set_labels):
     return combined_df
 
 
-def main(csv_file, put, output_folder):
+def main(put, output_folder):
     os.makedirs(output_folder, exist_ok=True)
 
     # Define set labels and the column to use for each
@@ -100,9 +100,8 @@ def main(csv_file, put, output_folder):
 # Parse the input arguments
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i','--csv_file',type=str,required=True,help="Full path to results.csv")
     parser.add_argument('-p','--put',type=str,required=True,help="Name of the subject program")
     parser.add_argument('-o','--output_folder',type=str,required=True,help="Output folder")
 
     args = parser.parse_args()
-    main(args.csv_file, args.put, args.output_folder)
+    main(args.put, args.output_folder)
