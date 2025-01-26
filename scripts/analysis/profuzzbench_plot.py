@@ -21,7 +21,7 @@ def calculate_phase_two_average(target, fuzzer, runs):
 
         try:
             with tarfile.open(file_name, "r:gz") as tar:
-                member = next(member for member in tar.getmembers() if "fuzzer_stats" in member.name)
+                member = next((member for member in tar.getmembers() if "fuzzer_stats" in member.name), None)
                 if not member:
                     print(f"Warning: No fuzzer_stats found in {file_name}")
                     continue

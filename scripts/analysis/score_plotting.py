@@ -24,6 +24,13 @@ def extract_csvs(output_dir, name_prefix):
                     csv_data.append(data)
                 
                     os.remove(extracted_csv_path)
+                    parent_dir = Path(output_dir) / Path(member.name).parent
+                    while parent_dir != Path(output_dir):
+                        try:
+                            parent_dir.rmdir()
+                        except OSError:
+                            break
+                        parent_dir = parent_dir.parent
 
     if not csv_data:
         return None # No matching files found
