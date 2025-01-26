@@ -96,6 +96,8 @@ def process_tar_files_by_set(tar_files, output_dir):
     for temp_dir in temp_dirs:
         try:
             shutil.rmtree(temp_dir)
+        except Exception as e:
+            print(f"Error cleaning up {temp_dir}: {e}")
 
 
 
