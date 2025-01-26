@@ -2,6 +2,7 @@
 
 import os
 import tarfile
+import shutil
 import pydot
 from pathlib import Path
 
@@ -67,6 +68,8 @@ def process_tar_files_by_set(tar_files, output_dir):
         set_name = tar_file.stem.split("-")[-1].split("_")[0]  # Extract the set name
         grouped_files.setdefault(set_name, []).append(tar_file)
 
+    temp_dirs = []  # To keep track of temporary extraction directories
+
     for set_name, files in grouped_files.items():
         print(f"\nProcessing set: {set_name}")
         extracted_dot_files = []
@@ -74,6 +77,7 @@ def process_tar_files_by_set(tar_files, output_dir):
         # Extract each .tar.gz into a unique directory
         for tar_file in files:
             extracted_dir = extract_tar_to_unique_dir(tar_file, output_dir)
+            temp_dirs.append(extracted_dir)  # Add to cleanup list
             ipsm_files = find_ipsm_dot_files(extracted_dir)
             if ipsm_files:
                 extracted_dot_files.extend(ipsm_files)
@@ -88,11 +92,18 @@ def process_tar_files_by_set(tar_files, output_dir):
         else:
             print(f"No .dot files to merge for set: {set_name}")
 
+    # Clean up temporary extraction directories
+    for temp_dir in temp_dirs:
+        try:
+            shutil.rmtree(temp_dir)  # Remove the temporary directory
+            print(f"Cleaned up temporary directory: {temp_dir}")
+        except Exception as e:
+            print(f"Error cleaning up {temp_dir}: {e}")
 
-# Example Usage
-input_tar_dir = "."  # Directory containing .tar.gz files
+
+
 output_dir = "./merged_graphs"
 
 Path(output_dir).mkdir(parents=True, exist_ok=True)
-tar_files = list(Path(input_tar_dir).glob("*.tar.gz"))
+tar_files = list(Path(".").glob("*.tar.gz"))
 process_tar_files_by_set(tar_files, output_dir)

@@ -5,20 +5,10 @@ import os
 import tarfile
 import pandas as pd
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 
 def extract_code_scores(output_dir, name_prefix, columns, variable):
-    """
-    Extracts specific columns from 'state_stats.csv' in tar.gz files.
-    Accumulates values within each file and averages across files for the given variable.
-    Args:
-        output_dir (str): Directory where extracted files are temporarily saved.
-        name_prefix (str): Prefix of the tar.gz files to process (e.g., "out-aflnet-").
-        columns (list): List of columns to extract (e.g., ['code2', 'score']).
-        variable (str): The variable to process (e.g., 'score', 'selected_times').
-    Returns:
-        DataFrame: A DataFrame containing accumulated and averaged values for the variable.
-    """
     data_frames = []
     for file_name in sorted(os.listdir(".")):
         if file_name.startswith(name_prefix) and file_name.endswith(".tar.gz"):
@@ -45,6 +35,13 @@ def extract_code_scores(output_dir, name_prefix, columns, variable):
 
                     # Clean up the extracted file
                     os.remove(extracted_csv_path)
+                    parent_dir = Path(output_dir) / Path(member.name).parent
+                    while parent_dir != Path(output_dir):
+                        try:
+                            parent_dir.rmdir()
+                        except OSError:
+                            break
+                        parent_dir = parent_dir.parent
 
     if not data_frames:
         return None  # No matching files found
@@ -58,12 +55,6 @@ def extract_code_scores(output_dir, name_prefix, columns, variable):
 
 
 def plot_scores(csv_file, output_folder, variable):
-    """
-    Reads the resulting CSV, sorts the data, and creates a bar chart.
-    Args:
-        csv_file (str): Path to the CSV file with scores.
-        output_folder (str): Path to save the bar chart.
-    """
     # Read the CSV
     data = pd.read_csv(csv_file)
 

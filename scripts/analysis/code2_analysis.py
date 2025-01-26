@@ -5,6 +5,7 @@ import os
 import tarfile
 import pandas as pd
 from collections import defaultdict
+from pathlib import Path
 
 def extract_column(output_dir, name_prefix, column_name):
     column_sets = []
@@ -23,6 +24,13 @@ def extract_column(output_dir, name_prefix, column_name):
 
                     # Clean up the extracted file
                     os.remove(extracted_csv_path)
+                    parent_dir = Path(output_dir) / Path(member.name).parent
+                    while parent_dir != Path(output_dir):
+                        try:
+                            parent_dir.rmdir()
+                        except OSError:
+                            break
+                        parent_dir = parent_dir.parent
 
     if not column_sets:
         return None # No matching files found
