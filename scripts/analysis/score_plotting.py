@@ -6,6 +6,7 @@ import tarfile
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 
 
 def extract_csvs(output_dir, name_prefix):
