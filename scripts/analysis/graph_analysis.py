@@ -7,6 +7,7 @@ def parse_dot_file(file_path):
     """Parse a DOT file and return a directed graph with tuple-labeled nodes."""
     graph = nx.DiGraph()
     node_label_pattern = re.compile(r'(\w+) \[label="<(?P<first>\d+),(?P<second>\d+)>"\];')
+    edge_pattern = re.compile(r'(\w+)\s*->\s*(\w+)\s*\[.*?\];')  # Matches edges with attributes
 
     with open(file_path, 'r') as f:
         for line in f:
@@ -19,7 +20,7 @@ def parse_dot_file(file_path):
                 graph.add_node(node_id, tuple=(first, second))
 
             # Parse edges
-            edge_match = re.match(r'(\w+) -> (\w+);', line)
+            edge_match = edge_pattern.match(line)
             if edge_match:
                 source = edge_match.group(1)
                 target = edge_match.group(2)
