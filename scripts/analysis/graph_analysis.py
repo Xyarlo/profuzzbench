@@ -25,6 +25,10 @@ def parse_dot_file(file_path):
                 target = edge_match.group(2)
                 graph.add_edge(source, target)
 
+    # Debugging outputs to check parsed nodes and edges
+    print("Parsed Nodes with Attributes:", graph.nodes(data=True))
+    print("Parsed Edges:", list(graph.edges()))
+
     return graph
 
 def group_nodes_by_second(graph):
