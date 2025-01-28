@@ -76,7 +76,7 @@ def analyze_graph(file_path):
         for target_code, target_group in groups.items():
             if source_code != target_code:
                 reaching_count = count_reaching_nodes(graph, source_group, target_group)
-                #print(f"{reaching_count}/{len(source_group)} Nodes in Group {source_code} are able to reach Group {target_code}")
+                print(f"{reaching_count}/{len(source_group)} Nodes in Group {source_code} are able to reach Group {target_code}")
                 if reaching_count > 0:
                     non_reaching_node = find_non_reaching_node(graph, source_group, target_group)
                     if non_reaching_node:
