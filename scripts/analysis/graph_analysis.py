@@ -44,7 +44,9 @@ def can_reach_any(graph, source_group, target_group):
     """Check if any node in source_group can reach any node in target_group."""
     for source in source_group:
         for target in target_group:
-            if nx.has_path(graph, source, target):
+            #if nx.has_path(graph, source, target):
+                #return True
+            if graph.has_edge(source, target):
                 return True
     return False
 
@@ -52,14 +54,16 @@ def count_reaching_nodes(graph, source_group, target_group):
     """Count how many nodes in source_group can reach any node in target_group."""
     count = 0
     for source in source_group:
-        if any(nx.has_path(graph, source, target) for target in target_group):
+        #if any(nx.has_path(graph, source, target) for target in target_group):
+        if any(graph.has_edge(source, target) for target in target_group):
             count += 1
     return count
 
 def find_non_reaching_node(graph, source_group, target_group):
     """Find a node in source_group that cannot reach any node in target_group."""
     for source in source_group:
-        if not any(nx.has_path(graph, source, target) for target in target_group):
+        #if not any(nx.has_path(graph, source, target) for target in target_group):
+        if not any(graph.has_edge(source, target) for target in target_group):
             return source
     return None
 
