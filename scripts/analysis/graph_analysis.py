@@ -51,7 +51,7 @@ def count_reaching_nodes(graph, source_group, target_group):
             count += 1
     return count
 
-def find_non_reaching_node(graph, source_group, target_group):
+def find_non_reaching_nodes(graph, source_group, target_group):
     non_reaching_nodes = []
     for source in source_group:
         #if not any(nx.has_path(graph, source, target) for target in target_group):
