@@ -74,9 +74,9 @@ def analyze_graph(file_path):
                     non_reaching_nodes = find_non_reaching_nodes(graph, source_group, target_group)
                     if non_reaching_nodes:
                         node_tuples = [graph.nodes[node]['tuple'] for node in non_reaching_nodes]
-                        print(f"Code {source_code} can reach Code {target_code}, but the following tuples cannot: " +
-                              ", ".join(f"<{t[0]},{t[1]}>" for t in node_tuples))
-
+                        #print(f"Code {source_code} can reach Code {target_code}, but the following tuples cannot: " +
+                        #      ", ".join(f"<{t[0]},{t[1]}>" for t in node_tuples))
+                              
 def main():
     files_to_analyze = [
         "merged_graph_delayed_transformed.dot",
