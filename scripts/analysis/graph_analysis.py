@@ -4,7 +4,6 @@ import networkx as nx
 import re
 
 def parse_dot_file(file_path):
-    """Parse a DOT file and return a directed graph with tuple-labeled nodes."""
     graph = nx.DiGraph()
     node_label_pattern = re.compile(r'(\w+) \[label="<(?P<first>\d+),(?P<second>\d+)>"\];')
     edge_pattern = re.compile(r'(\w+)\s*->\s*(\w+)\s*\[.*?\];')  # Matches edges with attributes
@@ -26,14 +25,9 @@ def parse_dot_file(file_path):
                 target = edge_match.group(2)
                 graph.add_edge(source, target)
 
-    # Debugging outputs to check parsed nodes and edges
-    #print("Parsed Nodes with Attributes:", graph.nodes(data=True))
-    #print("Parsed Edges:", list(graph.edges()))
-
     return graph
 
 def group_nodes_by_second(graph):
-    """Group nodes by the second value in their tuple label."""
     groups = {}
     for node, data in graph.nodes(data=True):
         _, second = data['tuple']
@@ -41,50 +35,49 @@ def group_nodes_by_second(graph):
     return groups
 
 def can_reach_any(graph, source_group, target_group):
-    """Check if any node in source_group can reach any node in target_group."""
     for source in source_group:
         for target in target_group:
-            if nx.has_path(graph, source, target):
+            #if nx.has_path(graph, source, target):
+                #return True
+            if graph.has_edge(source, target):
                 return True
     return False
 
 def count_reaching_nodes(graph, source_group, target_group):
-    """Count how many nodes in source_group can reach any node in target_group."""
     count = 0
     for source in source_group:
-        if any(nx.has_path(graph, source, target) for target in target_group):
+        #if any(nx.has_path(graph, source, target) for target in target_group):
+        if any(graph.has_edge(source, target) for target in target_group):
             count += 1
     return count
 
-def find_non_reaching_node(graph, source_group, target_group):
-    """Find a node in source_group that cannot reach any node in target_group."""
+def find_non_reaching_nodes(graph, source_group, target_group):
+    non_reaching_nodes = []
     for source in source_group:
-        if not any(nx.has_path(graph, source, target) for target in target_group):
-            return source
-    return None
+        #if not any(nx.has_path(graph, source, target) for target in target_group):
+        if not any(graph.has_edge(source, target) for target in target_group):
+            non_reaching_nodes.append(source)
+    return non_reaching_nodes
 
 def analyze_graph(file_path):
-    """Analyze the graph for group-to-group reachability and print results."""
     print(f"Analyzing graph: {file_path}")
 
-    # Parse the graph and group nodes
     graph = parse_dot_file(file_path)
     groups = group_nodes_by_second(graph)
 
-    # Perform analysis
     for source_code, source_group in groups.items():
         for target_code, target_group in groups.items():
             if source_code != target_code:
                 reaching_count = count_reaching_nodes(graph, source_group, target_group)
                 print(f"{reaching_count}/{len(source_group)} Nodes in Group {source_code} are able to reach Group {target_code}")
                 if reaching_count > 0:
-                    non_reaching_node = find_non_reaching_node(graph, source_group, target_group)
-                    if non_reaching_node:
-                        node_tuple = graph.nodes[non_reaching_node]['tuple']
-                        print(f"Code {source_code} can reach Code {target_code}, but Tuple <{node_tuple[0]},{node_tuple[1]}> cannot.")
-
+                    non_reaching_nodes = find_non_reaching_nodes(graph, source_group, target_group)
+                    if non_reaching_nodes:
+                        node_tuples = [graph.nodes[node]['tuple'] for node in non_reaching_nodes]
+                        #print(f"Code {source_code} can reach Code {target_code}, but the following tuples cannot: " +
+                        #      ", ".join(f"<{t[0]},{t[1]}>" for t in node_tuples))
+                              
 def main():
-    # List of transformed DOT files to analyze
     files_to_analyze = [
         "merged_graph_delayed_transformed.dot",
         "merged_graph_compensated_transformed.dot",
