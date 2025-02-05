@@ -64,7 +64,7 @@ def main(put, output_folder):
 
     os.makedirs(output_folder, exist_ok=True)
 
-    set_labels = ["aflnet", "aflnet-tuples", "tuples-random", "tuples-delayed", "tuples-compensated", "faster-havoc", "no-penalty"]
+    set_labels = ["aflnet", "aflnet-random", "aflnet-tuples", "tuples-random", "tuples-delayed", "tuples-compensated", "faster-havoc", "no-penalty"]
 
     for label in set_labels:
         print(f"Processing {label}...")

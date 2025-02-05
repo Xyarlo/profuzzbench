@@ -68,6 +68,7 @@ def main(put, output_folder):
     # Define set labels and the column to use for each
     sets = [
         {"label": "aflnet", "column": "id"},
+        {"label": "aflnet-random", "column": "id"},
         {"label": "aflnet-tuples", "column": "code2"},
         {"label": "tuples-random", "column": "code2"},
         {"label": "tuples-delayed", "column": "code2"},
