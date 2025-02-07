@@ -69,7 +69,7 @@ def plot_distributions(data_list, set_label, bin_size=500, title_fontsize=14, la
 def main(put, step, output_folder):
     os.makedirs(output_folder, exist_ok=True)
 
-    set_labels = ["aflnet", "aflnet-random", "aflnet-tuples", "tuples-random", "tuples-delayed", "tuples-compensated", "faster-havoc", "no-penalty"]
+    set_labels = ["aflnet", "aflnet-random", "aflnet-tuples", "tuples-random", "tuples-delayed", "tuples-compensated", "faster-havoc", "no-penalty", 'delayed-feedback', 'queue-compensation']
 
     for label in set_labels:
         print(f"Processing {label}...")
