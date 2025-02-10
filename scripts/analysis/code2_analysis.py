@@ -69,6 +69,8 @@ def main(put, output_folder):
     sets = [
         {"label": "aflnet", "column": "id"},
         {"label": "aflnet-random", "column": "id"},
+        {"label": "delayed-feedback", "column": "id"},
+        {"label": "queue-compensation", "column": "id"},
         {"label": "aflnet-tuples", "column": "code2"},
         {"label": "tuples-random", "column": "code2"},
         {"label": "tuples-delayed", "column": "code2"},
