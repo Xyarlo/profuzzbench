@@ -71,12 +71,13 @@ def main(put, output_folder):
         {"label": "aflnet-random", "column": "id"},
         {"label": "delayed-feedback", "column": "id"},
         {"label": "queue-compensation", "column": "id"},
+        {"label": "generous-credits", "column": "id"},
+        {"label": "no-penalty", "column": "id"},
         {"label": "aflnet-tuples", "column": "code2"},
         {"label": "tuples-random", "column": "code2"},
         {"label": "tuples-delayed", "column": "code2"},
         {"label": "tuples-compensated", "column": "code2"},
         {"label": "faster-havoc", "column": "code2"},
-        {"label": "no-penalty", "column": "code2"},
     ]
 
     counts_dicts = []
