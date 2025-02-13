@@ -45,6 +45,10 @@ def extract_code_scores(output_dir, name_prefix, columns, variable):
 
 def plot_scores(csv_file, output_folder, variable):
     data = pd.read_csv(csv_file)
+    
+    # Remove row_index columns if they exist
+    data.drop(columns=[col for col in data.columns if 'row_index' in col], inplace=True, errors='ignore')
+    
     numeric_columns = data.columns[1:]
 
     for col in numeric_columns:
@@ -53,10 +57,6 @@ def plot_scores(csv_file, output_folder, variable):
     data.fillna(0, inplace=True)
     data['average'] = data[numeric_columns].mean(axis=1)
 
-    # Sort by row_index instead of code name
-    if 'row_index' in data.columns:
-        data = data.sort_values(by='row_index')
-    
     plt.figure(figsize=(15, 8))
     bar_width = 0.2
     x = range(len(data['code']))
@@ -106,6 +106,9 @@ def main(put, output_folder):
             result = result if result is not None else set_data
             result = pd.merge(result, set_data, on='code', how='outer')
         
+        # Remove any 'row_index' columns before saving
+        result.drop(columns=[col for col in result.columns if 'row_index' in col], inplace=True, errors='ignore')
+
         result.fillna('n/a', inplace=True)
         output_file = os.path.join(output_folder, f"average_{variable}.csv")
         result.to_csv(output_file, index=False)
