@@ -9,6 +9,7 @@ from pathlib import Path
 
 def extract_code_scores(output_dir, name_prefix, columns, variable):
     data_frames = []
+    
     for file_name in sorted(os.listdir(".")):
         if file_name.startswith(name_prefix) and file_name.endswith(".tar.gz"):
             with tarfile.open(file_name, "r:gz") as tar:
@@ -17,55 +18,59 @@ def extract_code_scores(output_dir, name_prefix, columns, variable):
                     tar.extract(member, output_dir)
                     extracted_csv_path = os.path.join(output_dir, member.name)
                     data = pd.read_csv(extracted_csv_path)[columns]
-                    
+
                     group_column = 'id' if 'id' in data.columns else 'code2'
-                    if variable == 'score':
-                        data = data.groupby(group_column, as_index=False)[variable].mean()
-                    else:
-                        data = data.groupby(group_column, as_index=False)[variable].sum()
                     
+                    # Store row index before grouping
+                    data['row_index'] = data.reset_index().index  
+                    
+                    if variable == 'score':
+                        data = data.groupby(group_column, as_index=False).agg({variable: 'mean', 'row_index': 'mean'})
+                    else:
+                        data = data.groupby(group_column, as_index=False).agg({variable: 'sum', 'row_index': 'mean'})
+
                     data_frames.append(data)
                     os.remove(extracted_csv_path)
-                    parent_dir = Path(output_dir) / Path(member.name).parent
-                    while parent_dir != Path(output_dir):
-                        try:
-                            parent_dir.rmdir()
-                        except OSError:
-                            break
-                        parent_dir = parent_dir.parent
-    
+
     if not data_frames:
         return None
-    
+
     combined_data = pd.concat(data_frames)
     group_column = 'id' if 'id' in combined_data.columns else 'code2'
-    combined_data = combined_data.groupby(group_column, as_index=False)[variable].mean().round(0)
+
+    # Final grouping to average row indices and variable values
+    combined_data = combined_data.groupby(group_column, as_index=False).agg({variable: 'mean', 'row_index': 'mean'}).round(0)
+
     return combined_data
 
 def plot_scores(csv_file, output_folder, variable):
     data = pd.read_csv(csv_file)
     numeric_columns = data.columns[1:]
+
     for col in numeric_columns:
         data[col] = pd.to_numeric(data[col], errors='coerce')
-    
+
     data.fillna(0, inplace=True)
     data['average'] = data[numeric_columns].mean(axis=1)
-    data = data.sort_values(by='code')
+
+    # Sort by row_index instead of code name
+    if 'row_index' in data.columns:
+        data = data.sort_values(by='row_index')
     
     plt.figure(figsize=(15, 8))
     bar_width = 0.2
     x = range(len(data['code']))
-    
+
     for i, col in enumerate(numeric_columns):
         plt.bar([p + i * bar_width for p in x], data[col], bar_width, label=col)
-    
+
     plt.xticks([p + bar_width for p in x], data['code'], rotation=90)
     plt.xlabel('Code', fontsize=12)
     plt.ylabel(f'avg_{variable}', fontsize=12)
     plt.title(f'Comparison of {variable} Across Sets', fontsize=16)
     plt.legend()
     plt.tight_layout()
-    
+
     chart_file = os.path.join(output_folder, f"{variable}_comparison_chart.png")
     plt.savefig(chart_file)
     plt.show()
