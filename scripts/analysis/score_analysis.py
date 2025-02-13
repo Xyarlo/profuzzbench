@@ -9,7 +9,8 @@ from pathlib import Path
 
 def extract_code_scores(output_dir, name_prefix, columns, variable):
     data_frames = []
-    
+    order_scores = {}  # Dictionary to store rank scores
+
     for file_name in sorted(os.listdir(".")):
         if file_name.startswith(name_prefix) and file_name.endswith(".tar.gz"):
             with tarfile.open(file_name, "r:gz") as tar:
@@ -20,14 +21,18 @@ def extract_code_scores(output_dir, name_prefix, columns, variable):
                     data = pd.read_csv(extracted_csv_path)[columns]
 
                     group_column = 'id' if 'id' in data.columns else 'code2'
-                    
-                    # Store row index before grouping
-                    data['row_index'] = data.reset_index().index  
-                    
+
+                    # Assign an "order score" based on appearance order in the CSV
+                    for rank, value in enumerate(data[group_column]):
+                        if value not in order_scores:
+                            order_scores[value] = []
+                        order_scores[value].append(rank)
+
+                    # Aggregate variable
                     if variable == 'score':
-                        data = data.groupby(group_column, as_index=False).agg({variable: 'mean', 'row_index': 'mean'})
+                        data = data.groupby(group_column, as_index=False)[variable].mean()
                     else:
-                        data = data.groupby(group_column, as_index=False).agg({variable: 'sum', 'row_index': 'mean'})
+                        data = data.groupby(group_column, as_index=False)[variable].sum()
 
                     data_frames.append(data)
                     os.remove(extracted_csv_path)
@@ -38,24 +43,36 @@ def extract_code_scores(output_dir, name_prefix, columns, variable):
     combined_data = pd.concat(data_frames)
     group_column = 'id' if 'id' in combined_data.columns else 'code2'
 
-    # Final grouping to average row indices and variable values
-    combined_data = combined_data.groupby(group_column, as_index=False).agg({variable: 'mean', 'row_index': 'mean'}).round(0)
+    # Compute the dominant ranking by taking the average order position
+    rank_df = pd.DataFrame.from_dict(order_scores, orient='index', columns=['rank_list'])
+    rank_df['rank_score'] = rank_df['rank_list'].apply(lambda x: sum(x) / len(x))  # Average rank position
+    rank_df.drop(columns=['rank_list'], inplace=True)
+    rank_df.reset_index(inplace=True)
+    rank_df.rename(columns={'index': group_column}, inplace=True)
+
+    # Merge ranking information into the dataset
+    combined_data = combined_data.groupby(group_column, as_index=False)[variable].mean().round(0)
+    combined_data = combined_data.merge(rank_df, on=group_column, how='left')
 
     return combined_data
 
 def plot_scores(csv_file, output_folder, variable):
     data = pd.read_csv(csv_file)
-    
-    # Remove row_index columns if they exist
-    data.drop(columns=[col for col in data.columns if 'row_index' in col], inplace=True, errors='ignore')
-    
-    numeric_columns = data.columns[1:]
 
+    # Remove irrelevant columns
+    data.drop(columns=[col for col in data.columns if 'row_index' in col], inplace=True, errors='ignore')
+
+    # Convert numerical columns
+    numeric_columns = data.columns[1:]
     for col in numeric_columns:
         data[col] = pd.to_numeric(data[col], errors='coerce')
 
     data.fillna(0, inplace=True)
     data['average'] = data[numeric_columns].mean(axis=1)
+
+    # Ensure sorting by rank score (correct order) before plotting
+    if 'rank_score' in data.columns:
+        data = data.sort_values(by='rank_score')
 
     plt.figure(figsize=(15, 8))
     bar_width = 0.2
