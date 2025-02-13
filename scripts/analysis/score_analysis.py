@@ -47,7 +47,10 @@ def extract_code_scores(output_dir, name_prefix, columns, variable):
     rank_data = pd.concat(rank_records)
     
     group_column = 'id' if 'id' in combined_data.columns else 'code2'
-    combined_data = combined_data.groupby(group_column, as_index=False).agg({variable: 'mean', 'rank': 'median'})
+    median_ranks = rank_data.groupby(group_column)['rank'].median().reset_index()
+    
+    combined_data = combined_data.groupby(group_column, as_index=False).agg({variable: 'mean'})
+    combined_data = combined_data.merge(median_ranks, on=group_column, how='left')
     combined_data = combined_data.sort_values(by='rank').drop(columns=['rank'])  # Sort by median rank
     
     return combined_data
@@ -60,7 +63,9 @@ def plot_scores(csv_file, output_folder, variable):
     
     data.fillna(0, inplace=True)
     data['average'] = data[numeric_columns].mean(axis=1)
-    data = data.sort_values(by='average', ascending=False)  # Sort by representative order
+    
+    # Sort by median rank of IDs (precomputed in extract_code_scores)
+    data = data.sort_values(by='average', ascending=False)
     
     plt.figure(figsize=(15, 8))
     bar_width = 0.2
