@@ -44,11 +44,9 @@ def extract_code_scores(output_dir, name_prefix, columns, variable):
     group_column = 'id' if 'id' in combined_data.columns else 'code2'
 
     # Compute the dominant ranking by taking the average order position
-    rank_df = pd.DataFrame.from_dict(order_scores, orient='index', columns=['rank_list'])
-    rank_df['rank_score'] = rank_df['rank_list'].apply(lambda x: sum(x) / len(x))  # Average rank position
-    rank_df.drop(columns=['rank_list'], inplace=True)
-    rank_df.reset_index(inplace=True)
-    rank_df.rename(columns={'index': group_column}, inplace=True)
+    rank_df = pd.DataFrame([(key, sum(positions) / len(positions)) 
+                            for key, positions in order_scores.items()], 
+                            columns=[group_column, 'rank_score'])
 
     # Merge ranking information into the dataset
     combined_data = combined_data.groupby(group_column, as_index=False)[variable].mean().round(0)
