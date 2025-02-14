@@ -7,9 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-def extract_code_scores(output_dir, name_prefix, columns, variable):
+def extract_code_scores(output_dir, name_prefix, columns, variable, global_order):
     data_frames = []
-    rank_records = []
     
     for file_name in sorted(os.listdir(".")):
         if file_name.startswith(name_prefix) and file_name.endswith(".tar.gz"):
@@ -21,15 +20,15 @@ def extract_code_scores(output_dir, name_prefix, columns, variable):
                     data = pd.read_csv(extracted_csv_path)[columns]
                     
                     group_column = 'id' if 'id' in data.columns else 'code2'
-                    data['rank'] = data.reset_index().index  # Store the row index as rank
-                    
                     if variable == 'score':
-                        grouped = data.groupby(group_column, as_index=False).agg({variable: 'mean', 'rank': 'median'})
+                        grouped = data.groupby(group_column, as_index=False)[variable].mean()
                     else:
-                        grouped = data.groupby(group_column, as_index=False).agg({variable: 'sum', 'rank': 'median'})
+                        grouped = data.groupby(group_column, as_index=False)[variable].sum()
                     
                     data_frames.append(grouped)
-                    rank_records.append(grouped[['rank', group_column]])
+                    
+                    # Update global order tracking
+                    global_order.extend(data[group_column].tolist())
                     
                     os.remove(extracted_csv_path)
                     parent_dir = Path(output_dir) / Path(member.name).parent
@@ -44,28 +43,22 @@ def extract_code_scores(output_dir, name_prefix, columns, variable):
         return None
     
     combined_data = pd.concat(data_frames)
-    rank_data = pd.concat(rank_records)
-    
     group_column = 'id' if 'id' in combined_data.columns else 'code2'
-    median_ranks = rank_data.groupby(group_column)['rank'].median().reset_index()
-    
-    combined_data = combined_data.groupby(group_column, as_index=False).agg({variable: 'mean'})
-    combined_data = combined_data.merge(median_ranks, on=group_column, how='left')
-    combined_data = combined_data.sort_values(by='rank').drop(columns=['rank'])  # Sort by median rank
+    combined_data = combined_data.groupby(group_column, as_index=False)[variable].mean()
     
     return combined_data
 
-def plot_scores(csv_file, output_folder, variable):
+def plot_scores(csv_file, output_folder, variable, global_order):
     data = pd.read_csv(csv_file)
     numeric_columns = data.columns[1:]
     for col in numeric_columns:
         data[col] = pd.to_numeric(data[col], errors='coerce')
     
     data.fillna(0, inplace=True)
-    data['average'] = data[numeric_columns].mean(axis=1)
     
-    # Sort by median rank of IDs (precomputed in extract_code_scores)
-    data = data.sort_values(by='average', ascending=False)
+    # Ensure consistent x-axis order
+    data['code'] = pd.Categorical(data['code'], categories=global_order, ordered=True)
+    data = data.sort_values(by='code')
     
     plt.figure(figsize=(15, 8))
     bar_width = 0.2
@@ -94,12 +87,14 @@ def main(put, output_folder):
     
     variables = ['score', 'selected_times', 'fuzzs', 'paths_discovered']
     
+    global_order = []
+    
     for variable in variables:
         print("Processing aflnet-like sets...")
         result = None
         for label in aflnet_sets:
             print(f"Processing {label}...")
-            set_data = extract_code_scores(output_folder, f"out-{put}-{label}_", ['id', variable], variable)
+            set_data = extract_code_scores(output_folder, f"out-{put}-{label}_", ['id', variable], variable, global_order)
             if set_data is None:
                 print(f"Set {label} not found.")
                 continue
@@ -108,7 +103,7 @@ def main(put, output_folder):
         
         for label in tuples_sets:
             print(f"Processing {label}...")
-            set_data = extract_code_scores(output_folder, f"out-{put}-{label}_", ['code2', variable], variable)
+            set_data = extract_code_scores(output_folder, f"out-{put}-{label}_", ['code2', variable], variable, global_order)
             if set_data is None:
                 print(f"Set {label} not found.")
                 continue
@@ -116,12 +111,14 @@ def main(put, output_folder):
             result = result if result is not None else set_data
             result = pd.merge(result, set_data, on='code', how='outer')
         
+        global_order = list(dict.fromkeys(global_order))  # Remove duplicates while preserving order
+        
         result.fillna('n/a', inplace=True)
         output_file = os.path.join(output_folder, f"average_{variable}.csv")
         result.to_csv(output_file, index=False)
         print(f"Results saved to {output_file}")
         
-        plot_scores(output_file, output_folder, variable)
+        plot_scores(output_file, output_folder, variable, global_order)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
