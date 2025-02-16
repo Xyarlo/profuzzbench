@@ -19,7 +19,7 @@ def extract_code_scores(output_dir, name_prefix, column_name, global_order):
                     extracted_csv_path = os.path.join(output_dir, member.name)
                     data = pd.read_csv(extracted_csv_path)[['id', column_name]]
                     
-                    grouped = data.groupby('id', as_index=False)[column_name].sum()
+                    grouped = data.groupby('id', as_index=False)[column_name].mean()
                     grouped.rename(columns={column_name: name_prefix[:-1]}, inplace=True)
                     data_frames.append(grouped)
                     
@@ -30,7 +30,7 @@ def extract_code_scores(output_dir, name_prefix, column_name, global_order):
         return None
     
     combined_data = pd.concat(data_frames)
-    combined_data = combined_data.groupby('id', as_index=False).sum()
+    combined_data = combined_data.groupby('id', as_index=False).mean()
     combined_data.rename(columns={'id': 'code'}, inplace=True)
     return combined_data
 
@@ -48,7 +48,7 @@ def plot_scores(csv_file, output_folder, global_order):
     
     plt.xticks([p + bar_width for p in x], data['code'], rotation=90)
     plt.xlabel('Code', fontsize=12)
-    plt.ylabel('Total Paths Credited', fontsize=12)
+    plt.ylabel('Average Paths Credited', fontsize=12)
     plt.title('Comparison of Paths Credited Across Sets', fontsize=16)
     plt.legend()
     plt.tight_layout()
