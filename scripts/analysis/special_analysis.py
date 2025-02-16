@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-def extract_code_scores(output_dir, name_prefix, column_name, global_order):
+def extract_code_scores(output_dir, name_prefix, column_name, global_order, put):
     data_frames = []
     
     for file_name in sorted(os.listdir(".")):
@@ -67,7 +67,7 @@ def main(put, output_folder):
     result = None
     for label, column_name in sets.items():
         print(f"Processing {label}...")
-        set_data = extract_code_scores(output_folder, f"out-{put}-{label}_", column_name, global_order)
+        set_data = extract_code_scores(output_folder, f"out-{put}-{label}_", column_name, global_order, put)
         if set_data is None:
             print(f"Set {label} not found.")
             continue
