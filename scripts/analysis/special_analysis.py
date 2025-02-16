@@ -20,6 +20,7 @@ def extract_code_scores(output_dir, name_prefix, column_name, global_order):
                     data = pd.read_csv(extracted_csv_path)[['id', column_name]]
                     
                     grouped = data.groupby('id', as_index=False)[column_name].sum()
+                    grouped.rename(columns={column_name: name_prefix[:-1]}, inplace=True)
                     data_frames.append(grouped)
                     
                     global_order.extend(data['id'].tolist())
@@ -29,7 +30,8 @@ def extract_code_scores(output_dir, name_prefix, column_name, global_order):
         return None
     
     combined_data = pd.concat(data_frames)
-    combined_data = combined_data.groupby('id', as_index=False)[column_name].sum()
+    combined_data = combined_data.groupby('id', as_index=False).sum()
+    combined_data.rename(columns={'id': 'code'}, inplace=True)
     return combined_data
 
 def plot_scores(csv_file, output_folder, global_order):
@@ -38,15 +40,17 @@ def plot_scores(csv_file, output_folder, global_order):
     data = data.sort_values(by='code')
     
     plt.figure(figsize=(15, 8))
-    plt.bar(data['code'], data['value'])
+    for column in data.columns[1:]:
+        plt.bar(data['code'], data[column], label=column)
     
     plt.xticks(rotation=90)
     plt.xlabel('Code', fontsize=12)
-    plt.ylabel('Total Paths Credited', fontsize=12)
-    plt.title('Comparison of Paths Credited Across Sets', fontsize=16)
+    plt.ylabel('Total Paths Discovered', fontsize=12)
+    plt.title('Comparison of Paths Discovered Across Sets', fontsize=16)
+    plt.legend()
     plt.tight_layout()
     
-    chart_file = os.path.join(output_folder, "paths_credited_comparison.png")
+    chart_file = os.path.join(output_folder, "paths_discovered_comparison_chart.png")
     plt.savefig(chart_file)
     plt.show()
     print(f"Bar chart saved to {chart_file}")
@@ -64,12 +68,11 @@ def main(put, output_folder):
         if set_data is None:
             print(f"Set {label} not found.")
             continue
-        set_data.rename(columns={'id': 'code', column_name: 'value'}, inplace=True)
         result = set_data if result is None else pd.merge(result, set_data, on='code', how='outer')
     
     global_order = list(dict.fromkeys(global_order))
-    result.fillna('n/a', inplace=True)
-    output_file = os.path.join(output_folder, "average_paths_credited.csv")
+    result.fillna(0, inplace=True)
+    output_file = os.path.join(output_folder, "average_paths_discovered.csv")
     result.to_csv(output_file, index=False)
     print(f"Results saved to {output_file}")
     
