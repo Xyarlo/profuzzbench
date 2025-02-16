@@ -45,12 +45,12 @@ def plot_scores(csv_file, output_folder, global_order):
     
     plt.xticks(rotation=90)
     plt.xlabel('Code', fontsize=12)
-    plt.ylabel('Total Paths Discovered', fontsize=12)
-    plt.title('Comparison of Paths Discovered Across Sets', fontsize=16)
+    plt.ylabel('Total Paths Credited', fontsize=12)
+    plt.title('Comparison of Paths Credited Across Sets', fontsize=16)
     plt.legend()
     plt.tight_layout()
     
-    chart_file = os.path.join(output_folder, "paths_discovered_comparison_chart.png")
+    chart_file = os.path.join(output_folder, "paths_credited_comparison.png")
     plt.savefig(chart_file)
     plt.show()
     print(f"Bar chart saved to {chart_file}")
@@ -72,7 +72,7 @@ def main(put, output_folder):
     
     global_order = list(dict.fromkeys(global_order))
     result.fillna(0, inplace=True)
-    output_file = os.path.join(output_folder, "average_paths_discovered.csv")
+    output_file = os.path.join(output_folder, "average_paths_credited.csv")
     result.to_csv(output_file, index=False)
     print(f"Results saved to {output_file}")
     

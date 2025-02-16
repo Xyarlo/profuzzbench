@@ -74,7 +74,7 @@ def plot_scores(csv_file, output_folder, variable, global_order):
     plt.legend()
     plt.tight_layout()
     
-    chart_file = os.path.join(output_folder, f"{variable}_comparison_chart.png")
+    chart_file = os.path.join(output_folder, f"{variable}_comparison.png")
     plt.savefig(chart_file)
     plt.show()
     print(f"Bar chart saved to {chart_file}")
