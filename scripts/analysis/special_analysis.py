@@ -40,10 +40,13 @@ def plot_scores(csv_file, output_folder, global_order):
     data = data.sort_values(by='code')
     
     plt.figure(figsize=(15, 8))
-    for column in data.columns[1:]:
-        plt.bar(data['code'], data[column], label=column)
+    bar_width = 0.2
+    x = range(len(data['code']))
     
-    plt.xticks(rotation=90)
+    for i, col in enumerate(data.columns[1:]):
+        plt.bar([p + i * bar_width for p in x], data[col], bar_width, label=col)
+    
+    plt.xticks([p + bar_width for p in x], data['code'], rotation=90)
     plt.xlabel('Code', fontsize=12)
     plt.ylabel('Total Paths Credited', fontsize=12)
     plt.title('Comparison of Paths Credited Across Sets', fontsize=16)
