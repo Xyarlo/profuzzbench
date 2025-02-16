@@ -20,7 +20,7 @@ def extract_code_scores(output_dir, name_prefix, column_name, global_order):
                     data = pd.read_csv(extracted_csv_path)[['id', column_name]]
                     
                     grouped = data.groupby('id', as_index=False)[column_name].mean()
-                    grouped.rename(columns={column_name: name_prefix[:-1]}, inplace=True)
+                    grouped.rename(columns={column_name: name_prefix.replace(f'out-{put}-', '').rstrip('_')}, inplace=True)
                     data_frames.append(grouped)
                     
                     global_order.extend(data['id'].tolist())
