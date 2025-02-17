@@ -78,7 +78,7 @@ def compute_grouped_statistics(data_list):
 def main(put, output_folder):
     os.makedirs(output_folder, exist_ok=True)
 
-    set_labels = ["aflnet-tuples", "tuples-delayed", "tuples-compensated", "faster-havoc", "no-penalty"]
+    set_labels = ["aflnet-tuples", "tuples-delayed", "tuples-compensated", "faster-havoc", "no-penalty", 'no-splicing']
 
     for label in set_labels:
         # Extract data for the aflnet-tuples set
