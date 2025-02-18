@@ -83,7 +83,7 @@ def main(put, output_folder):
     os.makedirs(output_folder, exist_ok=True)
     
     aflnet_sets = ['aflnet', 'aflnet-random', 'generous-credits' , 'no-penalty', 'delayed-feedback', 'queue-compensation']
-    tuples_sets = ['aflnet-tuples', 'tuples-delayed', 'tuples-random', 'tuples-compensated', 'faster-havoc']
+    tuples_sets = ['aflnet-tuples', 'tuples-delayed', 'tuples-random', 'tuples-compensated', 'faster-havoc', 'no-splicing']
     
     variables = ['score', 'selected_times', 'fuzzs', 'paths_discovered']
     

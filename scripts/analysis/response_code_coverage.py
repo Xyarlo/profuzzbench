@@ -78,6 +78,7 @@ def main(put, output_folder):
         {"label": "tuples-delayed", "column": "code2"},
         {"label": "tuples-compensated", "column": "code2"},
         {"label": "faster-havoc", "column": "code2"},
+        {"label": "no-splicing", "column": "code2"},
     ]
 
     counts_dicts = []

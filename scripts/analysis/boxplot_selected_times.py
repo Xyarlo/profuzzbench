@@ -53,7 +53,7 @@ def plot_boxplot(data_list, set_label, output_file, column, xlabel):
 
 def main(put, output_folder):
     os.makedirs(output_folder, exist_ok=True)
-    set_labels = ["aflnet", "aflnet-random", "aflnet-tuples", "tuples-random", "tuples-delayed", "tuples-compensated", "faster-havoc", "no-penalty", "delayed-feedback", "queue-compensation", "generous-credits"]
+    set_labels = ["aflnet", "aflnet-random", "aflnet-tuples", "tuples-random", "tuples-delayed", "tuples-compensated", "faster-havoc", "no-penalty", "delayed-feedback", "queue-compensation", "generous-credits", "no-splicing"]
     
     for label in set_labels:
         print(f"Processing {label}...")
