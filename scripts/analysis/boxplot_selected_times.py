@@ -40,28 +40,21 @@ def extract_csvs(output_dir, name_prefix):
     
     return averaged_data
 
-def plot_combined_boxplot(data_list, set_labels, output_file):
+def plot_boxplot(data_list, set_labels, output_file, variable, xlabel):
     plt.figure(figsize=(12, 6))
     
-    actual_data = [data[['selected_times', 'score']] for data in data_list]
-    flattened_data = [data[col] for data in actual_data for col in ['selected_times', 'score']]
-    
-    labels = [f"{label} - {col}" for label in set_labels for col in ['Selected Times', 'Score']]
+    actual_data = [data[variable] for data in data_list]
+    labels = [f"{label}" for label in set_labels]
     
     fig, ax1 = plt.subplots(figsize=(12, 6))
-    boxplot = ax1.boxplot(flattened_data, labels=labels, vert=False, patch_artist=True, boxprops=dict(facecolor='skyblue', color='black'))
-    ax1.set_xlabel("Standardized Scale", fontsize=12)
-    ax1.set_title("Comparison of Selected Times and Score (Standardized Spread)", fontsize=16)
-    
-    min_values = [data.min().min() for data in actual_data]
-    max_values = [data.max().max() for data in actual_data]
-    
-    ax1.set_xlim(0, 1)  # Standardized axis
+    boxplot = ax1.boxplot(actual_data, labels=labels, vert=False, patch_artist=True, boxprops=dict(facecolor='skyblue', color='black'))
+    ax1.set_xlabel(xlabel, fontsize=12)
+    ax1.set_title(f"Comparison of {xlabel} Across Sets", fontsize=16)
     
     # Add individual x-axes for actual values dynamically
-    for i, (min_val, max_val, label) in enumerate(zip(min_values, max_values, set_labels)):
+    for i, (data, label) in enumerate(zip(actual_data, set_labels)):
         ax_extra = ax1.twiny()
-        ax_extra.set_xlim(min_val, max_val)
+        ax_extra.set_xlim(data.min(), data.max())
         ax_extra.spines['top'].set_position(('outward', 40 * i))
         ax_extra.set_xlabel(f"Actual Values for {label}", fontsize=12)
     
@@ -86,7 +79,8 @@ def main(put, output_folder):
         actual_labels.append(label)
     
     if data_list:
-        plot_combined_boxplot(data_list, actual_labels, os.path.join(output_folder, "combined_boxplot.png"))
+        plot_boxplot(data_list, actual_labels, os.path.join(output_folder, "selected_times_boxplot.png"), 'selected_times', "Selected Times")
+        plot_boxplot(data_list, actual_labels, os.path.join(output_folder, "score_boxplot.png"), 'score', "Score")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
