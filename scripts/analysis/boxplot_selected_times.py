@@ -51,19 +51,30 @@ def plot_boxplot(data_list, set_labels, output_file, variable, xlabel):
     ax1.set_xlabel(xlabel, fontsize=12)
     ax1.set_title(f"Comparison of {xlabel} Across Sets", fontsize=16)
     
-    # Compute adjusted x-limits for each set independently
+    # Compute adjusted x-limits for each set
     min_values = [data.min() for data in actual_data]
-    max_values = [data.max() * 1.05 for data in actual_data]  # Add 5% padding
+    max_values = [data.max() for data in actual_data]
+    adjusted_max_values = [max_val * 1.05 for max_val in max_values]  # Add 5% padding to max value
     
-    # Ensure each plot is scaled independently while still starting at 0
-    ax1.set_xlim(0, 1)
+    # Ensure all plots start at 0 and maintain proportional width
+    ax1.set_xlim(0, max(adjusted_max_values))
     
-    # Add individual x-axes dynamically, each scaled to its own data range
-    for i, (data, label, min_val, max_val) in enumerate(zip(actual_data, set_labels, min_values, max_values)):
-        ax_extra = ax1.twiny()
-        ax_extra.set_xlim(0, max_val)
-        ax_extra.spines['top'].set_position(('outward', 40 * i))
-        ax_extra.set_xlabel(f"Actual Values for {label}", fontsize=12)
+    # Add individual x-axes dynamically
+    if len(set_labels) == 1:
+        ax1.set_xlim(0, adjusted_max_values[0])
+        ax1.set_xlabel(f"Actual Values for {set_labels[0]}", fontsize=12)
+    elif len(set_labels) == 2:
+        ax1.set_xlim(0, max(adjusted_max_values))
+        ax1.set_xlabel(f"Actual Values for {set_labels[0]}", fontsize=12)
+        ax2 = ax1.twiny()
+        ax2.set_xlim(0, adjusted_max_values[1])
+        ax2.set_xlabel(f"Actual Values for {set_labels[1]}", fontsize=12)
+    else:
+        for i, (data, label, adj_max) in enumerate(zip(actual_data, set_labels, adjusted_max_values)):
+            ax_extra = ax1.twiny()
+            ax_extra.set_xlim(0, adj_max)
+            ax_extra.spines['top'].set_position(('outward', 40 * i))
+            ax_extra.set_xlabel(f"Actual Values for {label}", fontsize=12)
     
     plt.tight_layout()
     plt.savefig(output_file)
