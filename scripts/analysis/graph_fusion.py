@@ -4,34 +4,29 @@ import os
 import tarfile
 import shutil
 import pydot
+from collections import defaultdict
 from pathlib import Path
 
 def extract_tar_to_unique_dir(tar_path, extract_to_base):
-    """
-    Extract a .tar.gz file into a unique subdirectory of extract_to_base.
-    """
-    unique_dir = Path(extract_to_base) / tar_path.stem  # Unique directory name
+    """Extract a .tar.gz file into a unique subdirectory of extract_to_base."""
+    unique_dir = Path(extract_to_base) / tar_path.stem
     unique_dir.mkdir(parents=True, exist_ok=True)
     
     with tarfile.open(tar_path, "r:gz") as tar:
-        tar.extractall(unique_dir)  # Extract all files into the unique directory
+        tar.extractall(unique_dir)
     return unique_dir
 
 
 def find_ipsm_dot_files(extracted_dir):
-    """
-    Find all `ipsm.dot` files in the extracted directory.
-    """
+    """Find all `ipsm.dot` files in the extracted directory."""
     return list(Path(extracted_dir).rglob("ipsm.dot"))
 
 
 def merge_dot_graphs(dot_files, output_file):
-    """
-    Merge multiple .dot files into a single graph and save the result.
-    """
+    """Merge multiple .dot files into a single graph, adding edge weights based on frequency."""
     master_graph = pydot.Dot(graph_type='digraph', strict=True)
     added_nodes = set()
-    added_edges = set()
+    edge_counts = defaultdict(int)
 
     print(f"Merging {len(dot_files)} files into {output_file}...")
 
@@ -44,13 +39,17 @@ def merge_dot_graphs(dot_files, output_file):
                         if node.get_name() not in added_nodes:
                             master_graph.add_node(node)
                             added_nodes.add(node.get_name())
+
                     for edge in graph.get_edges():
                         edge_tuple = (edge.get_source(), edge.get_destination())
-                        if edge_tuple not in added_edges:
-                            master_graph.add_edge(edge)
-                            added_edges.add(edge_tuple)
+                        edge_counts[edge_tuple] += 1  # Count occurrences
         except Exception as e:
             print(f"Error processing {dot_file}: {e}")
+
+    # Add edges with weights
+    for (src, dst), count in edge_counts.items():
+        weighted_edge = pydot.Edge(src, dst, label=str(count), weight=str(count))
+        master_graph.add_edge(weighted_edge)
 
     if master_graph.get_nodes():
         master_graph.write_raw(output_file)
@@ -60,24 +59,21 @@ def merge_dot_graphs(dot_files, output_file):
 
 
 def process_tar_files_by_set(tar_files, output_dir):
-    """
-    Process tar.gz files grouped by set names and merge their graphs.
-    """
+    """Process tar.gz files grouped by set names and merge their graphs."""
     grouped_files = {}
     for tar_file in tar_files:
-        set_name = tar_file.stem.split("-")[-1].split("_")[0]  # Extract the set name
+        set_name = tar_file.stem.split("-")[-1].split("_")[0]  # Extract set name
         grouped_files.setdefault(set_name, []).append(tar_file)
 
-    temp_dirs = []  # To keep track of temporary extraction directories
+    temp_dirs = []
 
     for set_name, files in grouped_files.items():
         print(f"\nProcessing set: {set_name}")
         extracted_dot_files = []
 
-        # Extract each .tar.gz into a unique directory
         for tar_file in files:
             extracted_dir = extract_tar_to_unique_dir(tar_file, output_dir)
-            temp_dirs.append(extracted_dir)  # Add to cleanup list
+            temp_dirs.append(extracted_dir)
             ipsm_files = find_ipsm_dot_files(extracted_dir)
             if ipsm_files:
                 extracted_dot_files.extend(ipsm_files)
@@ -85,7 +81,6 @@ def process_tar_files_by_set(tar_files, output_dir):
             else:
                 print(f"No 'ipsm.dot' found in {tar_file}")
 
-        # Merge all the .dot files for this set
         if extracted_dot_files:
             merged_file_path = Path(output_dir) / f"merged_graph_{set_name}.dot"
             merge_dot_graphs(extracted_dot_files, merged_file_path)
