@@ -53,11 +53,10 @@ def analyze_graph(file_path):
     
     folder_name = os.path.splitext(os.path.basename(file_path))[0]
     os.makedirs(folder_name, exist_ok=True)
-    output_file = os.path.join(folder_name, "analysis.txt")
     
-    with open(output_file, 'w') as f:
-        f.write(f"Analysis for {file_path}\n\n")
-        for source_code, source_group in groups.items():
+    for source_code, source_group in groups.items():
+        output_file = os.path.join(folder_name, f"{source_code}.txt")
+        with open(output_file, 'w') as f:
             for target_code, target_group in groups.items():
                 if source_code != target_code:
                     reaching_count = count_reaching_nodes(graph, source_group, target_group)
