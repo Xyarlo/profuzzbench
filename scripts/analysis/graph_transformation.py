@@ -49,7 +49,6 @@ def transform_dot_file(input_file, output_file):
 def main():
     # List of files to transform
     files_to_transform = [
-        "merged_graph_compensated.dot",
         "merged_graph_delayed.dot",
         "merged_graph_tuples.dot",
     ]
