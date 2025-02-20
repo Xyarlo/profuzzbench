@@ -8,7 +8,7 @@ import os
 def parse_dot_file(file_path):
     graph = nx.DiGraph()
     node_label_pattern = re.compile(r'(\w+) \[label="<(?P<first>\d+),(?P<second>\d+)>"\];')
-    edge_pattern = re.compile(r'(\w+)\s*->\s*(\w+)\s*(?:\[\s*.*?\s*\])?;')
+    edge_pattern = re.compile(r'(\w+)\s*->\s*(\w+)\s*\[.*?\];')
 
     with open(file_path, 'r') as f:
         for line in f:
@@ -39,7 +39,7 @@ def group_nodes_by_second(graph):
 def count_reaching_nodes(graph, source_group, target_group):
     count = 0
     for source in source_group:
-        if any(nx.has_path(graph, source, target) for target in target_group):
+        if any(graph.has_edge(source, target) for target in target_group):
             count += 1
     return count
 
@@ -47,7 +47,7 @@ def count_reaching_nodes(graph, source_group, target_group):
 def find_non_reaching_nodes(graph, source_group, target_group):
     non_reaching_nodes = []
     for source in source_group:
-        if not any(nx.has_path(graph, source, target) for target in target_group):
+        if not any(graph.has_edge(source, target) for target in target_group):
             non_reaching_nodes.append(source)
     return non_reaching_nodes
 
