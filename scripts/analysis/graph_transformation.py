@@ -15,18 +15,14 @@ def transform_dot_file(input_file, output_file):
         content = f.read()
 
     # Find all node IDs (assuming they are integers in the graph)
-    node_pattern = re.compile(r'\b(\d+)\b')
     node_declaration_pattern = re.compile(r'^(\d+) \[label=".*?", weight=(\d+)\];', re.MULTILINE)
     edge_pattern = re.compile(r'^(\d+) -> (\d+) \[label=(\d+), weight=(\d+)\];', re.MULTILINE)
 
-    unique_nodes = sorted(set(map(int, node_pattern.findall(content))))
-
+    # Extract unique node IDs from the node declarations
+    unique_nodes = sorted(set(int(match.group(1)) for match in node_declaration_pattern.finditer(content)))
+    
     # Create a sorted mapping of original node IDs to new unique IDs with tuple labels
-    id_map = {}
-    for index, node in enumerate(unique_nodes):
-        tuple_label = convert_node_id_to_tuple(node)
-        new_id = f"node{index + 1}"
-        id_map[node] = (new_id, tuple_label)
+    id_map = {node: (f"node{index + 1}", convert_node_id_to_tuple(node)) for index, node in enumerate(unique_nodes)}
 
     # Replace node declarations while keeping weights
     def replace_node_declaration(match):
@@ -35,8 +31,8 @@ def transform_dot_file(input_file, output_file):
         new_id, tuple_label = id_map[original_id]
         return f'    {new_id} [label="<{tuple_label[0]},{tuple_label[1]}>", weight={weight}];'
     
-    content = node_declaration_pattern.sub(replace_node_declaration, content)
-
+    new_node_declarations = node_declaration_pattern.sub(replace_node_declaration, content)
+    
     # Replace edges while keeping weights
     def replace_edge(match):
         original_source = int(match.group(1))
@@ -47,11 +43,11 @@ def transform_dot_file(input_file, output_file):
         new_target, _ = id_map[original_target]
         return f'    {new_source} -> {new_target} [label={label}, weight={weight}];'
     
-    content = edge_pattern.sub(replace_edge, content)
-
+    new_content = edge_pattern.sub(replace_edge, new_node_declarations)
+    
     # Write to the output file
     with open(output_file, 'w') as f:
-        f.write(content)
+        f.write(new_content)
 
 
 def main():
