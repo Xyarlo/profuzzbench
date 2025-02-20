@@ -23,9 +23,9 @@ def find_ipsm_dot_files(extracted_dir):
 
 
 def merge_dot_graphs(dot_files, output_file):
-    """Merge multiple .dot files into a single graph, adding edge weights based on frequency."""
+    """Merge multiple .dot files into a single graph, adding weights based on frequency."""
     master_graph = pydot.Dot(graph_type='digraph', strict=True)
-    added_nodes = set()
+    node_counts = defaultdict(int)
     edge_counts = defaultdict(int)
 
     print(f"Merging {len(dot_files)} files into {output_file}...")
@@ -36,15 +36,19 @@ def merge_dot_graphs(dot_files, output_file):
             if graphs:
                 for graph in graphs:
                     for node in graph.get_nodes():
-                        if node.get_name() not in added_nodes:
-                            master_graph.add_node(node)
-                            added_nodes.add(node.get_name())
+                        node_name = node.get_name()
+                        node_counts[node_name] += 1  # Count node occurrences
 
                     for edge in graph.get_edges():
                         edge_tuple = (edge.get_source(), edge.get_destination())
-                        edge_counts[edge_tuple] += 1  # Count occurrences
+                        edge_counts[edge_tuple] += 1  # Count edge occurrences
         except Exception as e:
             print(f"Error processing {dot_file}: {e}")
+
+    # Add nodes with weights
+    for node_name, count in node_counts.items():
+        weighted_node = pydot.Node(node_name, label=f"{node_name} ({count})", weight=str(count))
+        master_graph.add_node(weighted_node)
 
     # Add edges with weights
     for (src, dst), count in edge_counts.items():
