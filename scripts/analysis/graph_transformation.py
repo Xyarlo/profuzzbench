@@ -10,12 +10,15 @@ def convert_node_id_to_tuple(node_id):
     return high, low
 
 def transform_dot_file(input_file, output_file):
-    """Transform a .dot file, replacing node IDs with unique identifiers and adding tuple labels."""
+    """Transform a .dot file, replacing node IDs with unique identifiers and adding tuple labels while keeping weights."""
     with open(input_file, 'r') as f:
         content = f.read()
 
     # Find all node IDs (assuming they are integers in the graph)
     node_pattern = re.compile(r'\b(\d+)\b')
+    node_declaration_pattern = re.compile(r'^(\d+) \[label=".*?", weight=(\d+)\];', re.MULTILINE)
+    edge_pattern = re.compile(r'^(\d+) -> (\d+) \[label=(\d+), weight=(\d+)\];', re.MULTILINE)
+
     unique_nodes = set(map(int, node_pattern.findall(content)))
 
     # Create a mapping of original node IDs to new unique IDs with tuple labels
@@ -25,25 +28,30 @@ def transform_dot_file(input_file, output_file):
         new_id = f"node{len(id_map) + 1}"
         id_map[node] = (new_id, tuple_label)
 
-    # Replace node IDs in the content
-    def replace_node_id(match):
+    # Replace node declarations while keeping weights
+    def replace_node_declaration(match):
         original_id = int(match.group(1))
-        new_id, _ = id_map[original_id]
-        return new_id
+        weight = match.group(2)
+        new_id, tuple_label = id_map[original_id]
+        return f'    {new_id} [label="<{tuple_label[0]},{tuple_label[1]}>", weight={weight}];'
+    
+    content = node_declaration_pattern.sub(replace_node_declaration, content)
 
-    transformed_content = node_pattern.sub(replace_node_id, content)
-
-    # Add labels for nodes
-    labels = []
-    for original_id, (new_id, tuple_label) in id_map.items():
-        labels.append(f'    {new_id} [label="<{tuple_label[0]},{tuple_label[1]}>"];')
-
-    # Insert labels into the graph definition
-    transformed_content = re.sub(r'(\{)', r'\1\n' + "\n".join(labels), transformed_content, count=1)
+    # Replace edges while keeping weights
+    def replace_edge(match):
+        original_source = int(match.group(1))
+        original_target = int(match.group(2))
+        label = match.group(3)
+        weight = match.group(4)
+        new_source, _ = id_map[original_source]
+        new_target, _ = id_map[original_target]
+        return f'    {new_source} -> {new_target} [label={label}, weight={weight}];'
+    
+    content = edge_pattern.sub(replace_edge, content)
 
     # Write to the output file
     with open(output_file, 'w') as f:
-        f.write(transformed_content)
+        f.write(content)
 
 
 def main():
