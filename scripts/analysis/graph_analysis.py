@@ -18,7 +18,7 @@ def parse_dot_file(file_path):
                 second = int(match.group('second'))
                 graph.add_node(node_id, tuple=(first, second))
 
-            edge_match = edge_pattern.match(line)
+            edge_match = edge_pattern.search(line)
             if edge_match:
                 source = edge_match.group(1)
                 target = edge_match.group(2)
