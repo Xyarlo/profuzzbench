@@ -18,36 +18,38 @@ def transform_dot_file(input_file, output_file):
     node_declaration_pattern = re.compile(r'^(\d+) \[label=".*?", weight=(\d+)\];', re.MULTILINE)
     edge_pattern = re.compile(r'^(\d+) -> (\d+) \[label=(\d+), weight=(\d+)\];', re.MULTILINE)
 
-    # Extract unique node IDs from the node declarations
+    # Extract unique node IDs from the node declarations and sort them numerically
     unique_nodes = sorted(set(int(match.group(1)) for match in node_declaration_pattern.finditer(content)))
     
-    # Create a sorted mapping of original node IDs to new unique IDs with tuple labels
+    # Assign sequential names strictly in increasing order
     id_map = {node: (f"node{index + 1}", convert_node_id_to_tuple(node)) for index, node in enumerate(unique_nodes)}
+    
+    # Ensure nodes are written first in the correct order
+    transformed_lines = ["strict digraph G {\n"]
+    transformed_lines.append("node [label=\"node (8)\", weight=8];\n")
+    transformed_lines.append("edge [label=\"edge (8)\", weight=8];\n")
 
     # Replace node declarations while keeping weights
-    def replace_node_declaration(match):
-        original_id = int(match.group(1))
-        weight = match.group(2)
-        new_id, tuple_label = id_map[original_id]
-        return f'    {new_id} [label="<{tuple_label[0]},{tuple_label[1]}>", weight={weight}];'
-    
-    new_node_declarations = node_declaration_pattern.sub(replace_node_declaration, content)
-    
+    for node in unique_nodes:
+        new_id, tuple_label = id_map[node]
+        weight = next(match.group(2) for match in node_declaration_pattern.finditer(content) if int(match.group(1)) == node)
+        transformed_lines.append(f'    {new_id} [label="<{tuple_label[0]},{tuple_label[1]}>", weight={weight}];\n')
+
     # Replace edges while keeping weights
-    def replace_edge(match):
+    for match in edge_pattern.finditer(content):
         original_source = int(match.group(1))
         original_target = int(match.group(2))
         label = match.group(3)
         weight = match.group(4)
         new_source, _ = id_map[original_source]
         new_target, _ = id_map[original_target]
-        return f'    {new_source} -> {new_target} [label={label}, weight={weight}];'
+        transformed_lines.append(f'    {new_source} -> {new_target} [label={label}, weight={weight}];\n')
     
-    new_content = edge_pattern.sub(replace_edge, new_node_declarations)
+    transformed_lines.append("}\n")
     
     # Write to the output file
     with open(output_file, 'w') as f:
-        f.write(new_content)
+        f.writelines(transformed_lines)
 
 
 def main():
