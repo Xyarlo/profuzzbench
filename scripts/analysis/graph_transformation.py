@@ -11,6 +11,10 @@ def convert_node_id_to_tuple(node_id):
 
 def transform_dot_file(input_file, output_file):
     """Transform a .dot file, replacing node IDs with unique identifiers and adding tuple labels while keeping weights."""
+    if not os.path.exists(input_file):
+        print(f"Skipping {input_file}: File not found.")
+        return
+    
     with open(input_file, 'r') as f:
         content = f.read()
 
