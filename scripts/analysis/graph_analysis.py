@@ -9,6 +9,10 @@ def parse_dot_file(file_path):
     node_label_pattern = re.compile(r'(\w+) \[label="<(?P<first>\d+),(?P<second>\d+)>".*?\];')
     edge_pattern = re.compile(r'(\w+)\s*->\s*(\w+)\s*\[.*?\];')
 
+    if not os.path.exists(file_path):
+        print(f"Warning: File {file_path} not found. Skipping.")
+        return None
+
     with open(file_path, 'r') as f:
         for line in f:
             match = node_label_pattern.search(line)
@@ -49,8 +53,10 @@ def find_non_reaching_nodes(graph, source_group, target_group):
 
 def analyze_graph(file_path):
     graph = parse_dot_file(file_path)
-    groups = group_nodes_by_second(graph)
+    if graph is None:
+        return
     
+    groups = group_nodes_by_second(graph)
     folder_name = os.path.splitext(os.path.basename(file_path))[0]
     os.makedirs(folder_name, exist_ok=True)
     
