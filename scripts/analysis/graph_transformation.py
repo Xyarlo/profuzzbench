@@ -19,13 +19,13 @@ def transform_dot_file(input_file, output_file):
     node_declaration_pattern = re.compile(r'^(\d+) \[label=".*?", weight=(\d+)\];', re.MULTILINE)
     edge_pattern = re.compile(r'^(\d+) -> (\d+) \[label=(\d+), weight=(\d+)\];', re.MULTILINE)
 
-    unique_nodes = set(map(int, node_pattern.findall(content)))
+    unique_nodes = sorted(set(map(int, node_pattern.findall(content))))
 
-    # Create a mapping of original node IDs to new unique IDs with tuple labels
+    # Create a sorted mapping of original node IDs to new unique IDs with tuple labels
     id_map = {}
-    for node in unique_nodes:
+    for index, node in enumerate(unique_nodes):
         tuple_label = convert_node_id_to_tuple(node)
-        new_id = f"node{len(id_map) + 1}"
+        new_id = f"node{index + 1}"
         id_map[node] = (new_id, tuple_label)
 
     # Replace node declarations while keeping weights
