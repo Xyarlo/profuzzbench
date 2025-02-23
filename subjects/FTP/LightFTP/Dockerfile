@@ -42,7 +42,7 @@ ARG MAKE_OPT
 # Set up fuzzers
 RUN git clone https://github.com/Xyarlo/aflnet.git && \
     cd aflnet && \
-    git checkout Tuple-States && \
+    git checkout backtrack && \
     make clean all $MAKE_OPT && \
     cd llvm_mode && make $MAKE_OPT
 
