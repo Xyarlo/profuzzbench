@@ -1,3 +1,9 @@
+# Master Thesis - Challenging AFLNet’s State Definition and Feedback Loop
+
+This repository is a fork of the public version of [ProFuzzBench](https://github.com/profuzzbench/profuzzbench) (created on Oct 27, 2024). Changes were made to the repository in order to evaluate several modified versions of AFLNet, which can also be found in another [forked repository](https://github.com/Xyarlo/aflnet).
+
+A major addition to this repository is a set of analysis scripts found in the `/scripts/analysis` subfolder of the `tuple-states` branch. These scripts were written using ChatGPT. The scripts were only used to extract data from output files and to generate graphs of the data. The interpretation of the data and the generated graphs was NOT supported by ChatGPT in any way.
+
 # ProFuzzBench - A Benchmark for Stateful Protocol Fuzzing
 ProFuzzBench is a benchmark for stateful fuzzing of network protocols. It includes a suite of representative open-source network servers for popular protocols (e.g., TLS, SSH, SMTP, FTP, SIP), and tools to automate experimentation.
 
